@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriLait — AI-Powered Dairy Consulting Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --ink:#0e1a0f;--ink2:#3a5a3b;--ink3:#6b8e6c;--surface:#f9faf7;--surface2:#f0f4ed;--surface3:#e5ede0;
+    --green:#2d6a2e;--green2:#3d8a3e;--green3:#4caf50;--green4:#c8e6c9;--green5:#e8f5e9;
+    --teal:#1b6b5e;--teal2:#c3e6df;--earth:#8b6914;--earth2:#f3e9c6;
+    --blue:#1a3c8b;--blue2:#d1dff5;--red:#c0392b;--amber:#d4790a;
+    --border:rgba(45,106,46,0.15);--border2:rgba(45,106,46,0.25);
+    --shadow:0 1px 3px rgba(14,26,15,0.08),0 4px 16px rgba(14,26,15,0.04);
+    --shadow2:0 2px 8px rgba(14,26,15,0.12),0 8px 32px rgba(14,26,15,0.06);
+  }
+  body{font-family:'Instrument Sans',sans-serif;background:var(--surface);color:var(--ink);font-size:14px;line-height:1.6;overflow-x:hidden}
+  nav{background:rgba(249,250,247,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;gap:32px;height:60px;position:sticky;top:0;z-index:100}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
+  .logo-mark{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center}
+  .logo-text{font-family:'DM Serif Display',serif;font-size:18px;color:var(--ink);letter-spacing:-0.3px}
+  .logo-text span{color:var(--green2)}
+  nav a{font-size:13px;color:var(--ink2);text-decoration:none;font-weight:500;padding:4px 0;border-bottom:2px solid transparent;transition:all .2s;cursor:pointer}
+  nav a:hover,nav a.active{color:var(--green);border-bottom-color:var(--green)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .btn-ghost{padding:6px 14px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-weight:500;color:var(--ink2);background:transparent;cursor:pointer;transition:all .2s;font-family:'Instrument Sans',sans-serif}
+  .btn-ghost:hover{background:var(--surface2);color:var(--ink)}
+  .btn-primary{padding:7px 16px;background:var(--green);border:none;border-radius:6px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;font-family:'Instrument Sans',sans-serif}
+  .btn-primary:hover{background:var(--green2)}
+  .tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:0;overflow-x:auto}
+  .tab{padding:14px 20px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+  .tab:hover{color:var(--ink2)}
+  .tab.active{color:var(--green);border-bottom-color:var(--green)}
+  .view{display:none;animation:fadeIn .3s ease}
+  .view.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  .hero{background:linear-gradient(145deg,#0e1a0f 0%,#1a3a1b 40%,#1b6b5e 100%);padding:80px 32px;position:relative;overflow:hidden;min-height:480px;display:flex;align-items:center}
+  .hero-bg{position:absolute;inset:0;opacity:0.04;background-image:radial-gradient(circle at 2px 2px,#ffffff 1px,transparent 0);background-size:28px 28px}
+  .hero-orb{position:absolute;right:-80px;top:-80px;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(76,175,80,0.18) 0%,transparent 70%)}
+  .hero-orb2{position:absolute;right:200px;bottom:-100px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(27,107,94,0.2) 0%,transparent 70%)}
+  .hero-content{position:relative;z-index:1;max-width:620px}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;color:#81c784;letter-spacing:0.5px;margin-bottom:24px}
+  .hero-dot{width:6px;height:6px;background:#4caf50;border-radius:50%;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+  .hero h1{font-family:'DM Serif Display',serif;font-size:48px;line-height:1.1;color:#fff;letter-spacing:-1px;margin-bottom:20px}
+  .hero h1 em{font-style:italic;color:#81c784}
+  .hero p{font-size:16px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:36px;max-width:480px}
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+  .btn-hero{padding:12px 28px;background:#4caf50;border:none;border-radius:8px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .2s}
+  .btn-hero:hover{background:#66bb6a;transform:translateY(-1px)}
+  .btn-hero-outline{padding:12px 28px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:8px;font-size:14px;font-weight:500;color:rgba(255,255,255,0.8);cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .2s}
+  .btn-hero-outline:hover{background:rgba(255,255,255,0.14)}
+  .hero-stats{display:flex;gap:48px;margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,0.1)}
+  .hero-stat-num{font-family:'DM Serif Display',serif;font-size:28px;color:#fff}
+  .hero-stat-label{font-size:12px;color:rgba(255,255,255,0.5)}
+  .section{padding:56px 32px}
+  .section-eyebrow{font-size:11px;font-weight:600;color:var(--green2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+  .section-title{font-family:'DM Serif Display',serif;font-size:34px;color:var(--ink);letter-spacing:-0.5px;margin-bottom:12px}
+  .section-sub{font-size:15px;color:var(--ink3);max-width:520px;line-height:1.6;margin-bottom:40px}
+  .flow-steps{display:flex;gap:0;position:relative}
+  .flow-step{flex:1;padding:28px 24px;background:var(--surface);border:1px solid var(--border);position:relative;cursor:pointer;transition:all .2s}
+  .flow-step:first-child{border-radius:12px 0 0 12px}
+  .flow-step:last-child{border-radius:0 12px 12px 0}
+  .flow-step:not(:first-child){border-left:none}
+  .flow-step:hover{background:var(--surface2)}
+  .flow-step::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--green3);font-size:18px;z-index:2;background:var(--surface);padding:2px}
+  .flow-step:last-child::after{display:none}
+  .step-num{width:28px;height:28px;background:var(--green5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--green2);margin-bottom:12px}
+  .step-icon{font-size:22px;margin-bottom:10px}
+  .step-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+  .step-desc{font-size:12px;color:var(--ink3);line-height:1.5}
+  .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px}
+  .feat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;transition:all .25s;cursor:pointer}
+  .feat-card:hover{border-color:var(--green3);box-shadow:var(--shadow2);transform:translateY(-2px)}
+  .feat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px}
+  .feat-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .feat-desc{font-size:12px;color:var(--ink3);line-height:1.55}
+  .dashboard-header{padding:24px 32px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .farm-info{display:flex;align-items:center;gap:14px}
+  .farm-avatar{width:44px;height:44px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .farm-name{font-size:16px;font-weight:600;color:var(--ink)}
+  .farm-meta{font-size:12px;color:var(--ink3)}
+  .farm-score-badge{background:var(--green5);border:1px solid var(--green4);border-radius:8px;padding:8px 16px;text-align:center}
+  .score-num{font-family:'DM Serif Display',serif;font-size:28px;color:var(--green);line-height:1}
+  .score-label{font-size:11px;color:var(--ink3);margin-top:2px}
+  .dash-grid{padding:20px 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+  .kpi-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px}
+  .kpi-num{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink);line-height:1.1}
+  .kpi-unit{font-family:'Instrument Sans',sans-serif;font-size:12px;color:var(--ink3);margin-left:2px}
+  .kpi-trend{font-size:11px;margin-top:4px}
+  .trend-up{color:#2e7d32}.trend-down{color:var(--red)}.trend-neutral{color:var(--ink3)}
+  .dash-main{padding:0 32px 20px;display:grid;grid-template-columns:1fr 1fr 340px;gap:16px}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .chart-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+  .chart-sub{font-size:11px;color:var(--ink3);margin-bottom:16px}
+  .scores-section{padding:0 32px 20px}
+  .scores-row{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+  .score-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all .2s}
+  .score-card:hover{border-color:var(--green3);box-shadow:var(--shadow)}
+  .score-ring{width:60px;height:60px;margin:0 auto 8px;position:relative}
+  .score-ring svg{transform:rotate(-90deg)}
+  .score-ring-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink);line-height:1}
+  .score-name{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.3px}
+  .alert-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .alert-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+  .alert-item:last-child{border-bottom:none;padding-bottom:0}
+  .alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+  .alert-text{font-size:12px;color:var(--ink2);line-height:1.5}
+  .alert-time{font-size:11px;color:var(--ink3);margin-top:2px}
+  .advisor-layout{padding:24px 32px;display:grid;grid-template-columns:300px 1fr;gap:20px;min-height:500px}
+  .advisor-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px}
+  .advisor-context{background:var(--green5);border:1px solid var(--green4);border-radius:8px;padding:14px}
+  .context-label{font-size:10px;font-weight:700;color:var(--green2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+  .context-item{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:3px 0}
+  .context-val{font-weight:600;color:var(--ink)}
+  .insight-chips{display:flex;flex-direction:column;gap:6px}
+  .chip{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink2);cursor:pointer;transition:all .2s;line-height:1.4}
+  .chip:hover,.chip.active{background:var(--green5);border-color:var(--green3);color:var(--green)}
+  .advisor-main{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;display:flex;flex-direction:column}
+  .advisor-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .ai-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green5);border:1px solid var(--green4);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--green2)}
+  .ai-pulse{width:6px;height:6px;background:var(--green3);border-radius:50%;animation:pulse 1.5s infinite}
+  .rec-list{display:flex;flex-direction:column;gap:12px}
+  .rec-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s}
+  .rec-item:hover{border-color:var(--green3);box-shadow:var(--shadow)}
+  .rec-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+  .rec-priority{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.3px}
+  .p-high{background:#ffebee;color:#c62828}.p-med{background:#fff8e1;color:#e65100}.p-low{background:#e8f5e9;color:#2e7d32}
+  .rec-title{font-size:13px;font-weight:600;color:var(--ink)}
+  .rec-body{font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:10px}
+  .rec-impact{font-size:11px;font-weight:600;color:var(--teal);background:var(--teal2);padding:4px 10px;border-radius:4px;display:inline-block}
+  .onboarding-layout{padding:24px 32px;display:grid;grid-template-columns:220px 1fr;gap:20px}
+  .onboarding-steps{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+  .step-nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .2s}
+  .step-nav-item:hover,.step-nav-item.active{background:var(--green5)}
+  .step-num-sm{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+  .s-complete{background:var(--green);color:#fff}.s-active{background:var(--green5);color:var(--green);border:1px solid var(--green3)}.s-pending{background:var(--surface3);color:var(--ink3)}
+  .step-nav-name{font-size:12px;font-weight:500;color:var(--ink2)}
+  .step-nav-item.active .step-nav-name{color:var(--green);font-weight:600}
+  .form-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px}
+  .form-title{font-size:18px;font-weight:600;color:var(--ink);margin-bottom:4px}
+  .form-sub{font-size:13px;color:var(--ink3);margin-bottom:24px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .form-group{display:flex;flex-direction:column;gap:6px}
+  .form-group.full{grid-column:1/-1}
+  label{font-size:12px;font-weight:600;color:var(--ink2)}
+  input,select,textarea{padding:9px 12px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:'Instrument Sans',sans-serif;color:var(--ink);background:var(--surface);outline:none;transition:all .2s;width:100%}
+  input:focus,select:focus,textarea:focus{border-color:var(--green3);box-shadow:0 0 0 3px rgba(76,175,80,0.12)}
+  .form-footer{margin-top:24px;display:flex;justify-content:flex-end;gap:10px}
+  .btn-sm{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;font-family:'Instrument Sans',sans-serif;cursor:pointer;transition:all .2s}
+  .btn-green{background:var(--green);color:#fff;border:none}.btn-green:hover{background:var(--green2)}
+  .btn-outline-sm{background:transparent;border:1px solid var(--border2);color:var(--ink2)}.btn-outline-sm:hover{background:var(--surface2)}
+  .benchmark-layout{padding:24px 32px;display:flex;flex-direction:column;gap:16px}
+  .bench-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .bench-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .bench-label{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:14px}
+  .bench-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .bench-bar-label{font-size:11px;color:var(--ink3);width:90px;text-align:right;flex-shrink:0}
+  .bench-bar-track{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+  .bench-bar-fill{height:100%;border-radius:4px}
+  .bench-bar-val{font-size:11px;font-weight:600;color:var(--ink);width:50px;text-align:right;flex-shrink:0}
+  .your-bar{background:var(--green2)}.region-bar{background:#81c784}
+  .sust-layout{padding:24px 32px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .sust-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+  .sust-bar{height:6px;background:var(--surface3);border-radius:3px;margin-top:10px;overflow:hidden}
+  .sust-bar-fill{height:100%;border-radius:3px}
+  @media(max-width:900px){
+    .features-grid,.scores-row{grid-template-columns:repeat(2,1fr)}
+    .dash-grid{grid-template-columns:1fr 1fr}
+    .dash-main,.advisor-layout,.onboarding-layout,.sust-layout{grid-template-columns:1fr}
+    .form-grid{grid-template-columns:1fr}
+    .bench-grid{grid-template-columns:1fr}
+    .hero h1{font-size:32px}
+    .flow-steps{flex-direction:column}
+    .flow-step{border-radius:0!important;border-left:1px solid var(--border)!important}
+    .flow-step::after{display:none}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-mark">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L14 6V12L9 16L4 12V6L9 2Z" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="9" cy="9" r="2" fill="#fff"/></svg>
+    </div>
+    <span class="logo-text">Agri<span>Lait</span></span>
+  </a>
+  <a onclick="showView('home')" id="nav-home" class="active">Platform</a>
+  <a onclick="showView('dashboard')" id="nav-dashboard">Dashboard</a>
+  <a onclick="showView('advisor')" id="nav-advisor">AI Advisor</a>
+  <a onclick="showView('benchmark')" id="nav-benchmark">Benchmarking</a>
+  <a onclick="showView('sustainability')" id="nav-sustainability">Sustainability</a>
+  <div class="nav-right">
+    <button class="btn-ghost" onclick="showView('onboarding')">Register Farm</button>
+    <button class="btn-primary">Log In</button>
+  </div>
+</nav>
+
+<div class="tab-bar" id="tab-bar" style="display:none">
+  <div class="tab active">Overview</div>
+  <div class="tab">Herd Management</div>
+  <div class="tab">Milk Production</div>
+  <div class="tab">Feeding</div>
+  <div class="tab">Reproduction</div>
+  <div class="tab">Animal Health</div>
+  <div class="tab">Financials</div>
+  <div class="tab">Reports</div>
+</div>
+
+<!-- HOME -->
+<div class="view active" id="view-home">
+  <div class="hero">
+    <div class="hero-bg"></div><div class="hero-orb"></div><div class="hero-orb2"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow"><span class="hero-dot"></span>AI-Powered Dairy Consulting</div>
+      <h1>Transform Farm Data<br>into <em>Better Decisions</em></h1>
+      <p>The world's most advanced dairy farm intelligence platform. Real-time analytics, AI-driven recommendations, and expert consulting — built for tomorrow's farmer.</p>
+      <div class="hero-cta">
+        <button class="btn-hero" onclick="showView('onboarding')">Start Free Assessment</button>
+        <button class="btn-hero-outline" onclick="showView('dashboard')">Explore Dashboard →</button>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hero-stat-num">2,400+</div><div class="hero-stat-label">Farms Analyzed</div></div>
+        <div><div class="hero-stat-num">18%</div><div class="hero-stat-label">Avg. Yield Increase</div></div>
+        <div><div class="hero-stat-num">34</div><div class="hero-stat-label">Countries</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="section" style="background:var(--surface2);border-bottom:1px solid var(--border)">
+    <div class="section-eyebrow">How It Works</div>
+    <div class="section-title">From Raw Data to Real Results</div>
+    <div class="section-sub">Five integrated stages that transform your farm's data into actionable intelligence.</div>
+    <div class="flow-steps">
+      <div class="flow-step"><div class="step-num">1</div><div class="step-icon">📊</div><div class="step-title">Data Collection</div><div class="step-desc">Structured onboarding covers 10 farm dimensions with intelligent guided forms</div></div>
+      <div class="flow-step"><div class="step-num">2</div><div class="step-icon">🔬</div><div class="step-title">Farm Analysis</div><div class="step-desc">AI engine processes 200+ indicators and benchmarks against regional datasets</div></div>
+      <div class="flow-step"><div class="step-num">3</div><div class="step-icon">🧠</div><div class="step-title">AI Recommendations</div><div class="step-desc">Personalized action plans ranked by potential impact and implementation ease</div></div>
+      <div class="flow-step"><div class="step-num">4</div><div class="step-icon">👨‍🌾</div><div class="step-title">Expert Support</div><div class="step-desc">On-demand access to certified vets, nutritionists, and agri-consultants</div></div>
+      <div class="flow-step"><div class="step-num">5</div><div class="step-icon">📈</div><div class="step-title">Continuous Monitoring</div><div class="step-desc">Real-time KPI tracking with early warning alerts and trend analysis</div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-eyebrow">Platform Capabilities</div>
+    <div class="section-title">Everything Your Farm Intelligence Needs</div>
+    <div class="features-grid">
+      <div class="feat-card" onclick="showView('dashboard')"><div class="feat-icon" style="background:var(--green5)">📊</div><div class="feat-title">Smart Dashboard</div><div class="feat-desc">Real-time KPI monitoring with 7 performance scores, trend analysis, and custom alerts tailored to your farm's profile.</div></div>
+      <div class="feat-card" onclick="showView('advisor')"><div class="feat-icon" style="background:#fff8e1">🤖</div><div class="feat-title">AI Farm Advisor</div><div class="feat-desc">GPT-powered recommendations covering nutrition, reproduction, health, and cost optimization — updated as your data changes.</div></div>
+      <div class="feat-card" onclick="showView('benchmark')"><div class="feat-icon" style="background:var(--blue2)">📍</div><div class="feat-title">Benchmarking</div><div class="feat-desc">Anonymous peer comparison against regional farms with similar herd sizes, production systems, and climate conditions.</div></div>
+      <div class="feat-card"><div class="feat-icon" style="background:#fce4ec">⚠️</div><div class="feat-title">Early Warning System</div><div class="feat-desc">Predictive alerts for heat stress events, mastitis risk, fertility decline, feed shortages, and financial stress indicators.</div></div>
+      <div class="feat-card" onclick="showView('sustainability')"><div class="feat-icon" style="background:var(--teal2)">🌿</div><div class="feat-title">Sustainability Module</div><div class="feat-desc">Carbon and water footprint estimation per liter of milk. LCA-based methodology aligned with ISO 14040/44 standards.</div></div>
+      <div class="feat-card"><div class="feat-icon" style="background:var(--earth2)">💰</div><div class="feat-title">Economic Simulator</div><div class="feat-desc">Model scenarios — herd expansion, ration changes, equipment investment — with projected ROI and break-even analysis.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="view" id="view-dashboard">
+  <div class="dashboard-header">
+    <div class="farm-info">
+      <div class="farm-avatar">🐄</div>
+      <div><div class="farm-name">Ferme El Alia — Annaba, Algeria</div><div class="farm-meta">280 ha · 320 dairy cows · Holstein-Frisonne · Est. 2008</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="font-size:12px;color:var(--ink3)">Last updated: <strong>Today, 08:34</strong></div>
+      <div class="farm-score-badge"><div class="score-num">74</div><div class="score-label">Farm Score</div></div>
+    </div>
+  </div>
+  <div class="dash-grid">
+    <div class="kpi-card"><div class="kpi-label">🥛 Daily Production</div><div class="kpi-num">7,840<span class="kpi-unit">L</span></div><div class="kpi-trend trend-up">↑ 4.2% vs last month</div></div>
+    <div class="kpi-card"><div class="kpi-label">🐄 Yield / Cow</div><div class="kpi-num">28.7<span class="kpi-unit">L/day</span></div><div class="kpi-trend trend-up">↑ 1.8% vs last month</div></div>
+    <div class="kpi-card"><div class="kpi-label">🔬 Milk Quality (SCC)</div><div class="kpi-num">198<span class="kpi-unit">k cells/mL</span></div><div class="kpi-trend trend-up">Good — target &lt;200k</div></div>
+    <div class="kpi-card"><div class="kpi-label">📋 Conception Rate</div><div class="kpi-num">58<span class="kpi-unit">%</span></div><div class="kpi-trend trend-down">↓ Below target (65%)</div></div>
+    <div class="kpi-card"><div class="kpi-label">💰 Feed Cost / L</div><div class="kpi-num">14.2<span class="kpi-unit">DZD</span></div><div class="kpi-trend trend-neutral">→ Stable</div></div>
+    <div class="kpi-card"><div class="kpi-label">🌿 Lactating Cows</div><div class="kpi-num">273<span class="kpi-unit">/320</span></div><div class="kpi-trend trend-up">85.3% in milk</div></div>
+    <div class="kpi-card"><div class="kpi-label">💊 Health Events</div><div class="kpi-num">3<span class="kpi-unit">this week</span></div><div class="kpi-trend trend-neutral">2 mastitis, 1 lameness</div></div>
+    <div class="kpi-card"><div class="kpi-label">💵 Revenue / Day</div><div class="kpi-num">117<span class="kpi-unit">k DZD</span></div><div class="kpi-trend trend-up">↑ 6.1% vs last month</div></div>
+  </div>
+  <div class="scores-section">
+    <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:12px">Performance Scores</div>
+    <div class="scores-row">
+      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#2d6a2e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="36" stroke-linecap="round"/></svg><div class="score-ring-label">74</div></div><div class="score-name">Overall</div></div>
+      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#3d8a3e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="28" stroke-linecap="round"/></svg><div class="score-ring-label">80</div></div><div class="score-name">Nutrition</div></div>
+      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#d4790a" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="57" stroke-linecap="round"/></svg><div class="score-ring-label">59</div></div><div class="score-name">Repro</div></div>
+      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#3d8a3e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="22" stroke-linecap="round"/></svg><div class="score-ring-label">84</div></div><div class="score-name">Health</div></div>
+      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#3d8a3e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="25" stroke-linecap="round"/></svg><div class="score-ring-label">82</div></div><div class="score-name">Milk</div></div>
+      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#1b6b5e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="32" stroke-linecap="round"/></svg><div class="score-ring-label">77</div></div><div class="score-name">Sustainability</div></div>
+      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#1a3c8b" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="41" stroke-linecap="round"/></svg><div class="score-ring-label">70</div></div><div class="score-name">Economic</div></div>
+    </div>
+  </div>
+  <div class="dash-main">
+    <div class="chart-card"><div class="chart-title">Milk Production Trend</div><div class="chart-sub">Daily liters — last 12 months</div><div style="position:relative;height:180px"><canvas id="milkChart" role="img" aria-label="Milk production trend">Monthly milk production.</canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Feed Cost Breakdown</div><div class="chart-sub">% of total monthly feed cost</div><div style="display:flex;align-items:center;gap:16px"><div style="position:relative;width:140px;height:140px;flex-shrink:0"><canvas id="feedChart" role="img" aria-label="Feed cost breakdown">Feed cost breakdown.</canvas></div><div style="font-size:11px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#2d6a2e;display:inline-block"></span>Silage 38%</div><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#3d8a3e;display:inline-block"></span>Concentrate 29%</div><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#81c784;display:inline-block"></span>Hay 18%</div><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#c8e6c9;display:inline-block"></span>Supplements 15%</div></div></div></div>
+    <div class="alert-card"><div class="chart-title" style="margin-bottom:14px">⚠️ Active Alerts</div>
+      <div class="alert-item"><div class="alert-dot" style="background:#c0392b"></div><div><div class="alert-text">Conception rate dropped to 58% — below 65% target. Review AI protocol.</div><div class="alert-time">2 days ago · High priority</div></div></div>
+      <div class="alert-item"><div class="alert-dot" style="background:#d4790a"></div><div><div class="alert-text">Heat stress forecast for next 5 days. Consider adjusting milking schedule.</div><div class="alert-time">Today · Medium priority</div></div></div>
+      <div class="alert-item"><div class="alert-dot" style="background:#2d6a2e"></div><div><div class="alert-text">Silage inventory at 62-day supply. Order recommended within 3 weeks.</div><div class="alert-time">Yesterday · Low priority</div></div></div>
+      <div class="alert-item"><div class="alert-dot" style="background:#1b6b5e"></div><div><div class="alert-text">Q3 audit report ready for review — 3 new recommendations.</div><div class="alert-time">3 days ago · Info</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI ADVISOR -->
+<div class="view" id="view-advisor">
+  <div class="advisor-layout">
+    <div class="advisor-sidebar">
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">Farm Context</div>
+      <div class="advisor-context">
+        <div class="context-label">Current Profile</div>
+        <div class="context-item"><span>Herd size</span><span class="context-val">320 cows</span></div>
+        <div class="context-item"><span>Avg. yield</span><span class="context-val">28.7 L</span></div>
+        <div class="context-item"><span>Conception</span><span class="context-val" style="color:var(--red)">58%</span></div>
+        <div class="context-item"><span>SCC</span><span class="context-val">198k</span></div>
+        <div class="context-item"><span>Feed cost/L</span><span class="context-val">14.2 DZD</span></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--ink2);margin-top:4px">Focus Areas</div>
+      <div class="insight-chips">
+        <div class="chip active">🔴 Reproduction crisis</div>
+        <div class="chip">🌡️ Heat stress protocol</div>
+        <div class="chip">💊 Mastitis prevention</div>
+        <div class="chip">🌾 Feed optimization</div>
+        <div class="chip">💰 Cost reduction</div>
+        <div class="chip">📈 Yield improvement</div>
+      </div>
+      <button class="btn-sm btn-green" style="margin-top:auto">Generate New Report</button>
+    </div>
+    <div class="advisor-main">
+      <div class="advisor-header-row">
+        <div><div style="font-size:16px;font-weight:600;color:var(--ink)">AI-Powered Recommendations</div><div style="font-size:12px;color:var(--ink3);margin-top:2px">Based on your farm data · Updated daily</div></div>
+        <div class="ai-badge"><span class="ai-pulse"></span>AI Active</div>
+      </div>
+      <div class="rec-list">
+        <div class="rec-item"><div class="rec-header"><div class="rec-title">🔴 Improve Conception Rate — Priority Action</div><span class="rec-priority p-high">HIGH</span></div><div class="rec-body">Current conception rate of 58% is 7 points below the 65% target. Analysis indicates heat stress during AI timing as the primary cause. Recommend shifting inseminations to early morning (05:00–07:00), increasing water access points from 4 to 8, and adding 200g/cow/day of rumen-protected fat supplement to improve energy balance during estrus.</div><div class="rec-impact">Projected gain: +11–14% conception rate within 60 days</div></div>
+        <div class="rec-item"><div class="rec-header"><div class="rec-title">🌡️ Heat Stress Mitigation Protocol</div><span class="rec-priority p-high">HIGH</span></div><div class="rec-body">5-day forecast indicates THI values exceeding 72 (stress threshold) for 9+ hours/day. Activate shade deployment for dry cows, increase ventilation fan speed by 20%, add electrolytes to drinking water (sodium bicarbonate 150g/cow/day), and consider moving TMR feeding to 21:00 to reduce peak rumen fermentation heat.</div><div class="rec-impact">Projected gain: Reduce milk loss by 3–5% during heat event</div></div>
+        <div class="rec-item"><div class="rec-header"><div class="rec-title">🌾 Silage Quality & Ration Rebalancing</div><span class="rec-priority p-med">MEDIUM</span></div><div class="rec-body">Latest forage analysis shows NDF at 58% — above the 52% optimal for high-producing cows. Reducing corn silage by 10% and replacing with 2 kg/cow/day high-energy concentrate would improve NDF digestibility and support sustained milk fat content above 3.8%.</div><div class="rec-impact">Projected gain: +0.8 L/cow/day, +0.1% milk fat</div></div>
+        <div class="rec-item"><div class="rec-header"><div class="rec-title">💊 Selective Dry Cow Therapy Transition</div><span class="rec-priority p-low">ROUTINE</span></div><div class="rec-body">With SCC at 198k cells/mL — near the premium threshold — transitioning from blanket to selective dry cow therapy could reduce antibiotic use by 40% while maintaining udder health. Target cows with &lt;3 mastitis events/lactation for antibiotic-free dry-off.</div><div class="rec-impact">Projected saving: 18–22% reduction in antibiotic costs</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div class="view" id="view-onboarding">
+  <div class="onboarding-layout">
+    <div class="onboarding-steps">
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:16px;padding:0 4px">Farm Registration</div>
+      <div class="step-nav-item active"><div class="step-num-sm s-active">1</div><div class="step-nav-name">Farm Profile</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">2</div><div class="step-nav-name">Herd Management</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">3</div><div class="step-nav-name">Milk Production</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">4</div><div class="step-nav-name">Feeding Management</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">5</div><div class="step-nav-name">Animal Health</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">6</div><div class="step-nav-name">Reproduction</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">7</div><div class="step-nav-name">Infrastructure</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">8</div><div class="step-nav-name">Financials</div></div>
+    </div>
+    <div class="form-section">
+      <div class="form-title">Farm Profile</div>
+      <div class="form-sub">Provide basic information about your farm. This helps us personalize your analysis to your production system and region.</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Farm Name *</label><input type="text" placeholder="e.g. Ferme Benamar"></div>
+        <div class="form-group"><label>Owner / Manager Name *</label><input type="text" placeholder="Full name"></div>
+        <div class="form-group"><label>Country *</label><select><option>Algeria</option><option>Morocco</option><option>Tunisia</option><option>Egypt</option><option>France</option><option>Other</option></select></div>
+        <div class="form-group"><label>Wilaya / Region</label><input type="text" placeholder="e.g. Annaba, Constantine..."></div>
+        <div class="form-group"><label>Total Farm Area (ha) *</label><input type="number" placeholder="e.g. 280"></div>
+        <div class="form-group"><label>Years of Dairy Operation *</label><input type="number" placeholder="e.g. 15"></div>
+        <div class="form-group"><label>Production Type</label><select><option>Intensive (zero-grazing)</option><option>Semi-intensive</option><option>Extensive (grazing)</option><option>Organic</option></select></div>
+        <div class="form-group"><label>Ownership Status</label><select><option>Owner-operator</option><option>Tenant farmer</option><option>Cooperative member</option><option>Corporate farm</option></select></div>
+        <div class="form-group full"><label>GPS Coordinates (optional)</label><input type="text" placeholder="e.g. 36.9000° N, 7.7667° E"></div>
+        <div class="form-group full"><label>Short Farm Description</label><textarea rows="3" placeholder="Briefly describe your farm's main activities, challenges, or goals..."></textarea></div>
+      </div>
+      <div class="form-footer">
+        <button class="btn-sm btn-outline-sm">Save Draft</button>
+        <button class="btn-sm btn-green">Continue → Herd Management</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BENCHMARKING -->
+<div class="view" id="view-benchmark">
+  <div class="benchmark-layout">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div><div class="section-eyebrow">Anonymous Benchmarking</div><div style="font-size:18px;font-weight:600;color:var(--ink)">Your Farm vs. Regional Peers</div><div style="font-size:12px;color:var(--ink3);margin-top:4px">Compared against 182 farms · Algeria · 250–350 cow herds</div></div>
+      <div style="display:flex;gap:12px"><button class="btn-ghost">Export Report</button><button class="btn-primary">Full Benchmark</button></div>
+    </div>
+    <div class="bench-grid">
+      <div class="bench-card">
+        <div class="bench-label">🥛 Milk Production Indicators</div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Yield/cow</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:72%"></div></div><div class="bench-bar-val">28.7 L</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:60%"></div></div><div class="bench-bar-val">24.1 L</div></div>
+        <div style="height:10px"></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Milk fat</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:76%"></div></div><div class="bench-bar-val">3.8%</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:72%"></div></div><div class="bench-bar-val">3.6%</div></div>
+        <div style="height:10px"></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">SCC</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:60%"></div></div><div class="bench-bar-val">198k</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:75%"></div></div><div class="bench-bar-val">248k</div></div>
+      </div>
+      <div class="bench-card">
+        <div class="bench-label">🐄 Reproduction Performance</div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Conception</div><div class="bench-bar-track"><div class="bench-bar-fill" style="width:58%;background:#d4790a"></div></div><div class="bench-bar-val" style="color:var(--red)">58% ↓</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:62%"></div></div><div class="bench-bar-val">62%</div></div>
+        <div style="height:10px"></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Calving intv.</div><div class="bench-bar-track"><div class="bench-bar-fill" style="width:55%;background:#d4790a"></div></div><div class="bench-bar-val">395 d</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:63%"></div></div><div class="bench-bar-val">380 d</div></div>
+        <div style="height:10px"></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Cull rate</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:46%"></div></div><div class="bench-bar-val">23%</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:50%"></div></div><div class="bench-bar-val">25%</div></div>
+      </div>
+      <div class="bench-card">
+        <div class="bench-label">💰 Economic Performance</div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Cost/L milk</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:54%"></div></div><div class="bench-bar-val">24.1 DZD</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:60%"></div></div><div class="bench-bar-val">26.8 DZD</div></div>
+        <div style="height:10px"></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Revenue/cow</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:74%"></div></div><div class="bench-bar-val">148k DZD</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:62%"></div></div><div class="bench-bar-val">124k DZD</div></div>
+      </div>
+      <div class="bench-card"><div style="position:relative;height:220px"><canvas id="radarChart" role="img" aria-label="Performance radar chart">Performance comparison across 6 dimensions.</canvas></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SUSTAINABILITY -->
+<div class="view" id="view-sustainability">
+  <div style="padding:24px 32px 0">
+    <div class="section-eyebrow">Environmental Intelligence</div>
+    <div style="font-size:22px;font-weight:600;font-family:'DM Serif Display',serif;color:var(--ink);margin-bottom:4px">Sustainability & Carbon Analysis</div>
+    <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">LCA-based environmental assessment · ISO 14040/44 methodology · Functional unit: 1 kg FPCM</div>
+  </div>
+  <div class="sust-layout">
+    <div class="sust-card">
+      <div class="chart-title">Carbon Footprint</div>
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-family:'DM Serif Display',serif;font-size:42px;color:var(--ink)">1.18</div>
+        <div style="font-size:13px;color:var(--ink3)">kg CO₂eq / kg FPCM</div>
+      </div>
+      <div class="sust-bar"><div class="sust-bar-fill" style="width:55%;background:#2d6a2e"></div></div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:6px;display:flex;justify-content:space-between"><span>Your farm: 1.18</span><span>MENA avg: 2.14</span></div>
+      <div style="margin-top:16px;font-size:12px;color:var(--ink2)">
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span>Enteric fermentation (CH₄)</span><span style="font-weight:600">42%</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span>Manure management (N₂O)</span><span style="font-weight:600">23%</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span>Feed production</span><span style="font-weight:600">28%</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0"><span>Energy & transport</span><span style="font-weight:600">7%</span></div>
+      </div>
+    </div>
+    <div class="sust-card">
+      <div class="chart-title">Water Footprint</div>
+      <div style="text-align:center;padding:20px 0">
+        <div style="font-family:'DM Serif Display',serif;font-size:42px;color:var(--ink)">285</div>
+        <div style="font-size:13px;color:var(--ink3)">L water / L milk</div>
+      </div>
+      <div class="sust-bar"><div class="sust-bar-fill" style="width:48%;background:#1b6b5e"></div></div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:6px;display:flex;justify-content:space-between"><span>Your farm: 285 L</span><span>Regional avg: 590 L</span></div>
+      <div style="margin-top:16px"><div style="position:relative;height:160px"><canvas id="waterChart" role="img" aria-label="Water footprint breakdown">Water footprint by type.</canvas></div></div>
+    </div>
+    <div class="sust-card">
+      <div class="chart-title">Resource Efficiency</div>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-top:16px">
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">Energy efficiency</span><span style="font-weight:600">0.42 MJ/L</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:70%;background:#3d8a3e"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">Land use</span><span style="font-weight:600">1.8 m² / L</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:62%;background:#81c784"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">N-use efficiency</span><span style="font-weight:600;color:var(--red)">34%</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:34%;background:#d4790a"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">P-use efficiency</span><span style="font-weight:600;color:var(--red)">28%</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:28%;background:#c0392b"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">Feed conversion</span><span style="font-weight:600">1.12 kg DM/L</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:75%;background:#2d6a2e"></div></div></div>
+      </div>
+      <div style="margin-top:20px;padding:12px;background:var(--green5);border:1px solid var(--green4);border-radius:8px;font-size:12px;color:var(--ink2)">
+        🌱 <strong>Sustainability Score: 77/100</strong><br>
+        <span style="color:var(--ink3)">Your farm performs 45% below the MENA regional average carbon intensity. Improving nitrogen use efficiency is the highest-leverage opportunity.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('nav a[id^="nav-"]').forEach(el=>el.classList.remove('active'));
+  const n=document.getElementById('nav-'+v);if(n)n.classList.add('active');
+  document.getElementById('tab-bar').style.display=v==='dashboard'?'flex':'none';
+  window.scrollTo(0,0);
+  if(v==='dashboard')initDash();
+  if(v==='benchmark')initBench();
+  if(v==='sustainability')initSust();
+}
+let di=false,bi=false,si=false;
+function initDash(){
+  if(di)return;di=true;
+  new Chart(document.getElementById('milkChart'),{type:'line',data:{labels:['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun'],datasets:[{label:'L',data:[7200,6800,7100,7400,7600,7900,7500,7300,7600,7800,7700,7840],borderColor:'#2d6a2e',backgroundColor:'rgba(45,106,46,0.07)',tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#2d6a2e'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#6b8e6c'}},x:{grid:{display:false},ticks:{font:{size:10},color:'#6b8e6c'}}}}});
+  new Chart(document.getElementById('feedChart'),{type:'doughnut',data:{labels:['Silage','Concentrate','Hay','Supplements'],datasets:[{data:[38,29,18,15],backgroundColor:['#2d6a2e','#3d8a3e','#81c784','#c8e6c9'],borderWidth:0}]},options:{responsive:false,plugins:{legend:{display:false}},cutout:'68%'}});
+}
+function initBench(){
+  if(bi)return;bi=true;
+  new Chart(document.getElementById('radarChart'),{type:'radar',data:{labels:['Milk','Nutrition','Repro','Health','Sustain.','Economic'],datasets:[{label:'Your Farm',data:[82,80,59,84,77,70],borderColor:'#2d6a2e',backgroundColor:'rgba(45,106,46,0.12)',pointBackgroundColor:'#2d6a2e'},{label:'Regional Avg',data:[68,65,62,70,58,65],borderColor:'#81c784',backgroundColor:'rgba(129,199,132,0.08)',pointBackgroundColor:'#81c784',borderDash:[4,4]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:'#3a5a3b'}}},scales:{r:{grid:{color:'rgba(0,0,0,0.06)'},pointLabels:{font:{size:10},color:'#3a5a3b'},ticks:{display:false},min:0,max:100}}}});
+}
+function initSust(){
+  if(si)return;si=true;
+  new Chart(document.getElementById('waterChart'),{type:'bar',data:{labels:['Green','Blue','Grey'],datasets:[{label:'Your farm',data:[164,68,53],backgroundColor:['#3d8a3e','#1a3c8b','#81c784']},{label:'Regional avg',data:[340,150,100],backgroundColor:['rgba(129,199,132,0.3)','rgba(26,60,139,0.2)','rgba(61,138,62,0.2)']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:'#3a5a3b'}}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:9},color:'#6b8e6c'}},x:{grid:{display:false},ticks:{font:{size:9},color:'#6b8e6c'}}}}});
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));this.classList.add('active')}));
+document.querySelectorAll('.step-nav-item').forEach((item,i)=>item.addEventListener('click',function(){document.querySelectorAll('.step-nav-item').forEach((s,j)=>{s.classList.remove('active');const n=s.querySelector('.step-num-sm');n.className='step-num-sm '+(j<i?'s-complete':j===i?'s-active':'s-pending')});this.classList.add('active')}));
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',function(){document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));this.classList.add('active')}));
+</script>
+</body>
+</html>
