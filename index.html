@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,250 +9,264 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  :root{
-    --ink:#0e1a0f;--ink2:#3a5a3b;--ink3:#6b8e6c;--surface:#f9faf7;--surface2:#f0f4ed;--surface3:#e5ede0;
-    --green:#2d6a2e;--green2:#3d8a3e;--green3:#4caf50;--green4:#c8e6c9;--green5:#e8f5e9;
-    --teal:#1b6b5e;--teal2:#c3e6df;--earth2:#f3e9c6;--blue:#1a3c8b;--blue2:#d1dff5;
-    --red:#c0392b;--amber:#d4790a;
-    --border:rgba(45,106,46,0.15);--border2:rgba(45,106,46,0.25);
-    --shadow:0 1px 3px rgba(14,26,15,0.08),0 4px 16px rgba(14,26,15,0.04);
-    --shadow2:0 2px 8px rgba(14,26,15,0.12),0 8px 32px rgba(14,26,15,0.06);
-  }
-  body{font-family:'Instrument Sans',sans-serif;background:var(--surface);color:var(--ink);font-size:14px;line-height:1.6;overflow-x:hidden}
-  nav{background:rgba(249,250,247,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;gap:32px;height:60px;position:sticky;top:0;z-index:100}
-  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;cursor:pointer}
-  .logo-mark{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center}
-  .logo-text{font-family:'DM Serif Display',serif;font-size:18px;color:var(--ink)}
-  .logo-text span{color:var(--green2)}
-  nav a{font-size:13px;color:var(--ink2);text-decoration:none;font-weight:500;padding:4px 0;border-bottom:2px solid transparent;transition:all .2s;cursor:pointer}
-  nav a:hover,nav a.active{color:var(--green);border-bottom-color:var(--green)}
-  .nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
-  .btn-ghost{padding:6px 14px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-weight:500;color:var(--ink2);background:transparent;cursor:pointer;transition:all .2s;font-family:'Instrument Sans',sans-serif}
-  .btn-ghost:hover{background:var(--surface2)}
-  .btn-primary{padding:7px 16px;background:var(--green);border:none;border-radius:6px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;font-family:'Instrument Sans',sans-serif}
-  .btn-primary:hover{background:var(--green2)}
-  .tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:0;overflow-x:auto}
-  .tab{padding:14px 20px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
-  .tab.active{color:var(--green);border-bottom-color:var(--green)}
-  .view{display:none;animation:fadeIn .3s ease}
-  .view.active{display:block}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0e1a0f;--ink2:#3a5a3b;--ink3:#6b8e6c;--surface:#f9faf7;--surface2:#f0f4ed;--surface3:#e5ede0;
+  --green:#2d6a2e;--green2:#3d8a3e;--green3:#4caf50;--green4:#c8e6c9;--green5:#e8f5e9;
+  --teal:#1b6b5e;--teal2:#c3e6df;--earth2:#f3e9c6;--blue:#1a3c8b;--blue2:#d1dff5;
+  --red:#c0392b;--amber:#d4790a;
+  --border:rgba(45,106,46,0.15);--border2:rgba(45,106,46,0.25);
+  --shadow:0 1px 3px rgba(14,26,15,0.08),0 4px 16px rgba(14,26,15,0.04);
+  --shadow2:0 2px 8px rgba(14,26,15,0.12),0 8px 32px rgba(14,26,15,0.06);
+}
+body{font-family:'Instrument Sans',sans-serif;background:var(--surface);color:var(--ink);font-size:14px;line-height:1.6;overflow-x:hidden}
 
-  /* AUTH MODAL */
-  .modal-overlay{position:fixed;inset:0;background:rgba(14,26,15,0.6);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
-  .modal-overlay.open{opacity:1;pointer-events:all}
-  .modal{background:var(--surface);border-radius:16px;padding:36px;width:420px;max-width:90vw;box-shadow:var(--shadow2);transform:translateY(8px);transition:transform .2s}
-  .modal-overlay.open .modal{transform:translateY(0)}
-  .modal-title{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink);margin-bottom:6px}
-  .modal-sub{font-size:13px;color:var(--ink3);margin-bottom:28px}
-  .modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
-  .modal-tab{padding:8px 20px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
-  .modal-tab.active{color:var(--green);border-bottom-color:var(--green)}
-  .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
-  .form-group label{font-size:12px;font-weight:600;color:var(--ink2)}
-  .form-group input{padding:10px 14px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:'Instrument Sans',sans-serif;color:var(--ink);background:#fff;outline:none;transition:all .2s}
-  .form-group input:focus{border-color:var(--green3);box-shadow:0 0 0 3px rgba(76,175,80,0.12)}
-  .auth-btn{width:100%;padding:11px;background:var(--green);border:none;border-radius:8px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .2s;margin-top:4px}
-  .auth-btn:hover{background:var(--green2)}
-  .auth-btn:disabled{opacity:0.6;cursor:not-allowed}
-  .auth-msg{font-size:12px;text-align:center;margin-top:12px;padding:8px 12px;border-radius:6px;display:none}
-  .auth-msg.error{background:#ffebee;color:#c62828;display:block}
-  .auth-msg.success{background:var(--green5);color:var(--green);display:block}
-  .modal-close{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:50%;border:none;background:var(--surface2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--ink3)}
-  .modal{position:relative}
+/* NAV */
+nav{background:rgba(249,250,247,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;gap:28px;height:60px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
+.logo-mark{width:32px;height:32px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-text{font-family:'DM Serif Display',serif;font-size:18px;color:var(--ink)}
+.logo-text span{color:var(--green2)}
+nav a{font-size:13px;color:var(--ink2);text-decoration:none;font-weight:500;padding:4px 0;border-bottom:2px solid transparent;transition:all .2s;cursor:pointer;white-space:nowrap}
+nav a:hover,nav a.active{color:var(--green);border-bottom-color:var(--green)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.lang-switcher{display:flex;gap:4px;background:var(--surface2);border-radius:6px;padding:3px}
+.lang-btn{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s}
+.lang-btn.active{background:#fff;color:var(--green);box-shadow:var(--shadow)}
+.btn-ghost{padding:6px 14px;border:1px solid var(--border2);border-radius:6px;font-size:13px;font-weight:500;color:var(--ink2);background:transparent;cursor:pointer;transition:all .2s;font-family:'Instrument Sans',sans-serif}
+.btn-ghost:hover{background:var(--surface2)}
+.btn-primary{padding:7px 16px;background:var(--green);border:none;border-radius:6px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .2s;font-family:'Instrument Sans',sans-serif}
+.btn-primary:hover{background:var(--green2)}
+.user-pill{display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--green5);border:1px solid var(--green4);border-radius:100px;font-size:12px;font-weight:600;color:var(--green)}
+.user-dot{width:7px;height:7px;background:var(--green3);border-radius:50%}
 
-  /* USER PILL */
-  .user-pill{display:flex;align-items:center;gap:8px;padding:5px 12px;background:var(--green5);border:1px solid var(--green4);border-radius:100px;font-size:12px;font-weight:600;color:var(--green)}
-  .user-dot{width:7px;height:7px;background:var(--green3);border-radius:50%}
+/* TABS */
+.tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;gap:0;overflow-x:auto}
+.tab{padding:14px 20px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
 
-  /* TOAST */
-  .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:300;transform:translateY(80px);opacity:0;transition:all .3s}
-  .toast.show{transform:translateY(0);opacity:1}
-  .toast.green{background:var(--green)}
+/* VIEWS */
+.view{display:none;animation:fadeIn .3s ease}
+.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
-  /* HERO */
-  .hero{background:linear-gradient(145deg,#0e1a0f 0%,#1a3a1b 40%,#1b6b5e 100%);padding:80px 32px;position:relative;overflow:hidden;min-height:480px;display:flex;align-items:center}
-  .hero-bg{position:absolute;inset:0;opacity:0.04;background-image:radial-gradient(circle at 2px 2px,#fff 1px,transparent 0);background-size:28px 28px}
-  .hero-orb{position:absolute;right:-80px;top:-80px;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(76,175,80,0.18) 0%,transparent 70%)}
-  .hero-orb2{position:absolute;right:200px;bottom:-100px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(27,107,94,0.2) 0%,transparent 70%)}
-  .hero-content{position:relative;z-index:1;max-width:620px}
-  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;color:#81c784;letter-spacing:0.5px;margin-bottom:24px}
-  .hero-dot{width:6px;height:6px;background:#4caf50;border-radius:50%;animation:pulse 2s infinite}
-  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
-  .hero h1{font-family:'DM Serif Display',serif;font-size:48px;line-height:1.1;color:#fff;letter-spacing:-1px;margin-bottom:20px}
-  .hero h1 em{font-style:italic;color:#81c784}
-  .hero p{font-size:16px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:36px;max-width:480px}
-  .hero-cta{display:flex;gap:12px;flex-wrap:wrap}
-  .btn-hero{padding:12px 28px;background:#4caf50;border:none;border-radius:8px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .2s}
-  .btn-hero:hover{background:#66bb6a;transform:translateY(-1px)}
-  .btn-hero-outline{padding:12px 28px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:8px;font-size:14px;font-weight:500;color:rgba(255,255,255,0.8);cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .2s}
-  .btn-hero-outline:hover{background:rgba(255,255,255,0.14)}
-  .hero-stats{display:flex;gap:48px;margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,0.1)}
-  .hero-stat-num{font-family:'DM Serif Display',serif;font-size:28px;color:#fff}
-  .hero-stat-label{font-size:12px;color:rgba(255,255,255,0.5)}
-  .section{padding:56px 32px}
-  .section-eyebrow{font-size:11px;font-weight:600;color:var(--green2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
-  .section-title{font-family:'DM Serif Display',serif;font-size:34px;color:var(--ink);letter-spacing:-0.5px;margin-bottom:12px}
-  .section-sub{font-size:15px;color:var(--ink3);max-width:520px;line-height:1.6;margin-bottom:40px}
-  .flow-steps{display:flex;gap:0}
-  .flow-step{flex:1;padding:28px 24px;background:var(--surface);border:1px solid var(--border);position:relative;transition:all .2s}
-  .flow-step:first-child{border-radius:12px 0 0 12px}
-  .flow-step:last-child{border-radius:0 12px 12px 0}
-  .flow-step:not(:first-child){border-left:none}
-  .flow-step:hover{background:var(--surface2)}
-  .flow-step::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--green3);font-size:18px;z-index:2;background:var(--surface);padding:2px}
-  .flow-step:last-child::after{display:none}
-  .step-num{width:28px;height:28px;background:var(--green5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--green2);margin-bottom:12px}
-  .step-icon{font-size:22px;margin-bottom:10px}
-  .step-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
-  .step-desc{font-size:12px;color:var(--ink3);line-height:1.5}
-  .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-  .feat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;transition:all .25s;cursor:pointer}
-  .feat-card:hover{border-color:var(--green3);box-shadow:var(--shadow2);transform:translateY(-2px)}
-  .feat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px}
-  .feat-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
-  .feat-desc{font-size:12px;color:var(--ink3);line-height:1.55}
-  .dashboard-header{padding:24px 32px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-  .farm-avatar{width:44px;height:44px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-  .farm-score-badge{background:var(--green5);border:1px solid var(--green4);border-radius:8px;padding:8px 16px;text-align:center}
-  .score-num{font-family:'DM Serif Display',serif;font-size:28px;color:var(--green);line-height:1}
-  .score-label{font-size:11px;color:var(--ink3);margin-top:2px}
-  .dash-grid{padding:20px 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
-  .kpi-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px}
-  .kpi-num{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink);line-height:1.1}
-  .kpi-unit{font-family:'Instrument Sans',sans-serif;font-size:12px;color:var(--ink3);margin-left:2px}
-  .kpi-trend{font-size:11px;margin-top:4px}
-  .trend-up{color:#2e7d32}.trend-down{color:var(--red)}.trend-neutral{color:var(--ink3)}
-  .dash-main{padding:0 32px 20px;display:grid;grid-template-columns:1fr 1fr 340px;gap:16px}
-  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
-  .chart-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
-  .chart-sub{font-size:11px;color:var(--ink3);margin-bottom:16px}
-  .scores-section{padding:0 32px 20px}
-  .scores-row{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
-  .score-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all .2s}
-  .score-card:hover{border-color:var(--green3)}
-  .score-ring{width:60px;height:60px;margin:0 auto 8px;position:relative}
-  .score-ring svg{transform:rotate(-90deg)}
-  .score-ring-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink);line-height:1}
-  .score-name{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.3px}
-  .alert-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
-  .alert-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-  .alert-item:last-child{border-bottom:none;padding-bottom:0}
-  .alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
-  .alert-text{font-size:12px;color:var(--ink2);line-height:1.5}
-  .alert-time{font-size:11px;color:var(--ink3);margin-top:2px}
-  .advisor-layout{padding:24px 32px;display:grid;grid-template-columns:300px 1fr;gap:20px}
-  .advisor-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px}
-  .advisor-context{background:var(--green5);border:1px solid var(--green4);border-radius:8px;padding:14px}
-  .context-label{font-size:10px;font-weight:700;color:var(--green2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
-  .context-item{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:3px 0}
-  .context-val{font-weight:600;color:var(--ink)}
-  .insight-chips{display:flex;flex-direction:column;gap:6px}
-  .chip{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink2);cursor:pointer;transition:all .2s;line-height:1.4}
-  .chip:hover,.chip.active{background:var(--green5);border-color:var(--green3);color:var(--green)}
-  .advisor-main{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
-  .ai-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green5);border:1px solid var(--green4);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--green2)}
-  .ai-pulse{width:6px;height:6px;background:var(--green3);border-radius:50%;animation:pulse 1.5s infinite}
-  .rec-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
-  .rec-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px}
-  .rec-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
-  .rec-priority{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.3px}
-  .p-high{background:#ffebee;color:#c62828}.p-med{background:#fff8e1;color:#e65100}.p-low{background:#e8f5e9;color:#2e7d32}
-  .rec-title{font-size:13px;font-weight:600;color:var(--ink)}
-  .rec-body{font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:10px}
-  .rec-impact{font-size:11px;font-weight:600;color:var(--teal);background:var(--teal2);padding:4px 10px;border-radius:4px;display:inline-block}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(14,26,15,0.6);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:16px;padding:36px;width:420px;max-width:92vw;box-shadow:var(--shadow2);transform:translateY(8px);transition:transform .2s;position:relative}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink);margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--ink3);margin-bottom:24px}
+.modal-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px}
+.modal-tab{padding:8px 20px;font-size:13px;font-weight:500;color:var(--ink3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.modal-tab.active{color:var(--green);border-bottom-color:var(--green)}
+.modal-close{position:absolute;top:14px;right:14px;width:28px;height:28px;border-radius:50%;border:none;background:var(--surface2);cursor:pointer;font-size:14px;color:var(--ink3)}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fg label{font-size:12px;font-weight:600;color:var(--ink2)}
+.fg input,.fg select,.fg textarea{padding:10px 14px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:'Instrument Sans',sans-serif;color:var(--ink);background:#fff;outline:none;transition:all .2s;width:100%}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--green3);box-shadow:0 0 0 3px rgba(76,175,80,0.12)}
+.auth-btn{width:100%;padding:11px;background:var(--green);border:none;border-radius:8px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .2s;margin-top:4px}
+.auth-btn:hover{background:var(--green2)}
+.auth-btn:disabled{opacity:0.6;cursor:not-allowed}
+.msg{font-size:12px;text-align:center;margin-top:10px;padding:8px 12px;border-radius:6px;display:none}
+.msg.error{background:#ffebee;color:#c62828;display:block}
+.msg.success{background:var(--green5);color:var(--green);display:block}
 
-  /* ONBOARDING */
-  .onboarding-layout{padding:24px 32px;display:grid;grid-template-columns:220px 1fr;gap:20px}
-  .onboarding-steps{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
-  .step-nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .2s}
-  .step-nav-item:hover,.step-nav-item.active{background:var(--green5)}
-  .step-num-sm{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-  .s-complete{background:var(--green);color:#fff}.s-active{background:var(--green5);color:var(--green);border:1px solid var(--green3)}.s-pending{background:var(--surface3);color:var(--ink3)}
-  .step-nav-name{font-size:12px;font-weight:500;color:var(--ink2)}
-  .step-nav-item.active .step-nav-name{color:var(--green);font-weight:600}
-  .form-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px}
-  .form-title{font-size:18px;font-weight:600;color:var(--ink);margin-bottom:4px}
-  .form-sub{font-size:13px;color:var(--ink3);margin-bottom:24px}
-  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .fg{display:flex;flex-direction:column;gap:6px}
-  .fg.full{grid-column:1/-1}
-  .fg label{font-size:12px;font-weight:600;color:var(--ink2)}
-  .fg input,.fg select,.fg textarea{padding:9px 12px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:'Instrument Sans',sans-serif;color:var(--ink);background:var(--surface);outline:none;transition:all .2s;width:100%}
-  .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--green3);box-shadow:0 0 0 3px rgba(76,175,80,0.12)}
-  .form-footer{margin-top:24px;display:flex;justify-content:flex-end;gap:10px}
-  .btn-sm{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;font-family:'Instrument Sans',sans-serif;cursor:pointer;transition:all .2s;border:none}
-  .btn-green{background:var(--green);color:#fff}.btn-green:hover{background:var(--green2)}
-  .btn-outline-sm{background:transparent;border:1px solid var(--border2) !important;color:var(--ink2)}.btn-outline-sm:hover{background:var(--surface2)}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:300;transform:translateY(80px);opacity:0;transition:all .3s;max-width:300px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.green{background:var(--green)}
 
-  /* BENCHMARK */
-  .benchmark-layout{padding:24px 32px;display:flex;flex-direction:column;gap:16px}
-  .bench-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .bench-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
-  .bench-label{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:14px}
-  .bench-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-  .bench-bar-label{font-size:11px;color:var(--ink3);width:90px;text-align:right;flex-shrink:0}
-  .bench-bar-track{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
-  .bench-bar-fill{height:100%;border-radius:4px}
-  .bench-bar-val{font-size:11px;font-weight:600;color:var(--ink);width:50px;text-align:right;flex-shrink:0}
-  .your-bar{background:var(--green2)}.region-bar{background:#81c784}
+/* HERO */
+.hero{background:linear-gradient(145deg,#0e1a0f 0%,#1a3a1b 40%,#1b6b5e 100%);padding:80px 32px;position:relative;overflow:hidden;min-height:480px;display:flex;align-items:center}
+.hero-bg{position:absolute;inset:0;opacity:0.04;background-image:radial-gradient(circle at 2px 2px,#fff 1px,transparent 0);background-size:28px 28px}
+.hero-orb{position:absolute;right:-80px;top:-80px;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(76,175,80,0.18) 0%,transparent 70%)}
+.hero-orb2{position:absolute;right:200px;bottom:-100px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(27,107,94,0.2) 0%,transparent 70%)}
+.hero-content{position:relative;z-index:1;max-width:640px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;color:#81c784;letter-spacing:0.5px;margin-bottom:24px}
+.hero-dot{width:6px;height:6px;background:#4caf50;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.hero h1{font-family:'DM Serif Display',serif;font-size:48px;line-height:1.1;color:#fff;letter-spacing:-1px;margin-bottom:20px}
+.hero h1 em{font-style:italic;color:#81c784}
+.hero p{font-size:16px;color:rgba(255,255,255,0.65);line-height:1.7;margin-bottom:36px;max-width:500px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn-hero{padding:12px 28px;background:#4caf50;border:none;border-radius:8px;font-size:14px;font-weight:600;color:#fff;cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .2s}
+.btn-hero:hover{background:#66bb6a;transform:translateY(-1px)}
+.btn-hero-outline{padding:12px 28px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:8px;font-size:14px;font-weight:500;color:rgba(255,255,255,0.8);cursor:pointer;font-family:'Instrument Sans',sans-serif;transition:all .2s}
+.btn-hero-outline:hover{background:rgba(255,255,255,0.14)}
+.hero-stats{display:flex;gap:48px;margin-top:48px;padding-top:32px;border-top:1px solid rgba(255,255,255,0.1)}
+.hero-stat-num{font-family:'DM Serif Display',serif;font-size:28px;color:#fff}
+.hero-stat-label{font-size:12px;color:rgba(255,255,255,0.5)}
 
-  /* SUSTAINABILITY */
-  .sust-layout{padding:24px 32px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
-  .sust-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
-  .sust-bar{height:6px;background:var(--surface3);border-radius:3px;margin-top:10px;overflow:hidden}
-  .sust-bar-fill{height:100%;border-radius:3px}
+/* SECTIONS */
+.section{padding:56px 32px}
+.section-eyebrow{font-size:11px;font-weight:600;color:var(--green2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:'DM Serif Display',serif;font-size:34px;color:var(--ink);letter-spacing:-0.5px;margin-bottom:12px}
+.section-sub{font-size:15px;color:var(--ink3);max-width:520px;line-height:1.6;margin-bottom:40px}
+.flow-steps{display:flex}
+.flow-step{flex:1;padding:28px 24px;background:var(--surface);border:1px solid var(--border);position:relative;transition:all .2s}
+.flow-step:first-child{border-radius:12px 0 0 12px}
+.flow-step:last-child{border-radius:0 12px 12px 0}
+.flow-step:not(:first-child){border-left:none}
+.flow-step:hover{background:var(--surface2)}
+.flow-step::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--green3);font-size:18px;z-index:2;background:var(--surface);padding:2px}
+.flow-step:last-child::after{display:none}
+.step-num{width:28px;height:28px;background:var(--green5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--green2);margin-bottom:12px}
+.step-icon{font-size:22px;margin-bottom:10px}
+.step-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.step-desc{font-size:12px;color:var(--ink3);line-height:1.5}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;transition:all .25s;cursor:pointer}
+.feat-card:hover{border-color:var(--green3);box-shadow:var(--shadow2);transform:translateY(-2px)}
+.feat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px}
+.feat-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.feat-desc{font-size:12px;color:var(--ink3);line-height:1.55}
 
-  /* LOCKED STATE */
-  .locked-banner{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:48px 32px;text-align:center;margin:32px}
-  .locked-icon{font-size:40px;margin-bottom:16px}
-  .locked-title{font-family:'DM Serif Display',serif;font-size:24px;color:var(--ink);margin-bottom:8px}
-  .locked-sub{font-size:14px;color:var(--ink3);margin-bottom:24px}
+/* DASHBOARD */
+.dashboard-header{padding:24px 32px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.farm-avatar{width:44px;height:44px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.farm-score-badge{background:var(--green5);border:1px solid var(--green4);border-radius:8px;padding:8px 16px;text-align:center}
+.score-num-big{font-family:'DM Serif Display',serif;font-size:28px;color:var(--green);line-height:1}
+.dash-grid{padding:20px 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;transition:all .2s}
+.kpi-card:hover{box-shadow:var(--shadow)}
+.kpi-label{font-size:11px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px}
+.kpi-num{font-family:'DM Serif Display',serif;font-size:26px;color:var(--ink);line-height:1.1}
+.kpi-unit{font-family:'Instrument Sans',sans-serif;font-size:12px;color:var(--ink3);margin-left:2px}
+.kpi-trend{font-size:11px;margin-top:4px}
+.trend-up{color:#2e7d32}.trend-down{color:var(--red)}.trend-neutral{color:var(--ink3)}
+.dash-main{padding:0 32px 20px;display:grid;grid-template-columns:1fr 1fr 340px;gap:16px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.chart-sub{font-size:11px;color:var(--ink3);margin-bottom:16px}
+.scores-section{padding:0 32px 20px}
+.scores-row{display:grid;grid-template-columns:repeat(7,1fr);gap:10px}
+.score-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;transition:all .2s}
+.score-card:hover{border-color:var(--green3)}
+.score-ring{width:60px;height:60px;margin:0 auto 8px;position:relative}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'DM Serif Display',serif;font-size:16px;color:var(--ink);line-height:1}
+.score-name{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.3px}
+.alert-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.alert-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.alert-item:last-child{border-bottom:none;padding-bottom:0}
+.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.alert-text{font-size:12px;color:var(--ink2);line-height:1.5}
+.alert-time{font-size:11px;color:var(--ink3);margin-top:2px}
 
-  @media(max-width:900px){
-    .features-grid,.scores-row{grid-template-columns:repeat(2,1fr)}
-    .dash-grid{grid-template-columns:1fr 1fr}
-    .dash-main,.advisor-layout,.onboarding-layout,.sust-layout{grid-template-columns:1fr}
-    .form-grid{grid-template-columns:1fr}
-    .bench-grid{grid-template-columns:1fr}
-    .hero h1{font-size:32px}
-    .flow-steps{flex-direction:column}
-    .flow-step{border-radius:0!important;border-left:1px solid var(--border)!important}
-    .flow-step::after{display:none}
-  }
+/* NO DATA STATE */
+.no-data{text-align:center;padding:60px 32px}
+.no-data-icon{font-size:48px;margin-bottom:16px}
+.no-data-title{font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:8px}
+.no-data-sub{font-size:14px;color:var(--ink3);margin-bottom:24px;max-width:400px;margin-left:auto;margin-right:auto}
+
+/* AI ADVISOR */
+.advisor-layout{padding:24px 32px;display:grid;grid-template-columns:300px 1fr;gap:20px}
+.advisor-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.advisor-context{background:var(--green5);border:1px solid var(--green4);border-radius:8px;padding:14px}
+.context-label{font-size:10px;font-weight:700;color:var(--green2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.context-item{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:3px 0}
+.context-val{font-weight:600;color:var(--ink)}
+.chip{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--ink2);cursor:pointer;transition:all .2s;line-height:1.4}
+.chip:hover,.chip.active{background:var(--green5);border-color:var(--green3);color:var(--green)}
+.advisor-main{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px}
+.ai-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green5);border:1px solid var(--green4);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--green2)}
+.ai-pulse{width:6px;height:6px;background:var(--green3);border-radius:50%;animation:pulse 1.5s infinite}
+.rec-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.rec-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;transition:all .2s}
+.rec-item:hover{border-color:var(--green3)}
+.rec-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px}
+.rec-priority{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.3px;white-space:nowrap}
+.p-high{background:#ffebee;color:#c62828}.p-med{background:#fff8e1;color:#e65100}.p-low{background:#e8f5e9;color:#2e7d32}
+.rec-title{font-size:13px;font-weight:600;color:var(--ink)}
+.rec-body{font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:10px}
+.rec-impact{font-size:11px;font-weight:600;color:var(--teal);background:var(--teal2);padding:4px 10px;border-radius:4px;display:inline-block}
+.ai-loading{text-align:center;padding:40px;color:var(--ink3);font-size:13px}
+.ai-spinner{width:32px;height:32px;border:3px solid var(--green4);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ONBOARDING */
+.onboarding-layout{padding:24px 32px;display:grid;grid-template-columns:220px 1fr;gap:20px}
+.onboarding-steps{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;height:fit-content}
+.step-nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .2s}
+.step-nav-item:hover,.step-nav-item.active{background:var(--green5)}
+.step-num-sm{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.s-complete{background:var(--green);color:#fff}.s-active{background:var(--green5);color:var(--green);border:1.5px solid var(--green3)}.s-pending{background:var(--surface3);color:var(--ink3)}
+.step-nav-name{font-size:12px;font-weight:500;color:var(--ink2)}
+.step-nav-item.active .step-nav-name{color:var(--green);font-weight:600}
+.form-section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px}
+.form-title{font-size:18px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.form-sub{font-size:13px;color:var(--ink3);margin-bottom:24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.fg.full{grid-column:1/-1}
+.form-footer{margin-top:24px;display:flex;justify-content:flex-end;gap:10px;padding-top:20px;border-top:1px solid var(--border)}
+.btn-sm{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;font-family:'Instrument Sans',sans-serif;cursor:pointer;transition:all .2s;border:none}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:var(--green2)}
+.btn-outline-sm{background:transparent;border:1px solid var(--border2)!important;color:var(--ink2)}.btn-outline-sm:hover{background:var(--surface2)}
+
+/* BENCHMARK */
+.benchmark-layout{padding:24px 32px;display:flex;flex-direction:column;gap:16px}
+.bench-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.bench-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.bench-label{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:16px}
+.bench-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.bench-bar-label{font-size:11px;color:var(--ink3);width:90px;text-align:right;flex-shrink:0}
+.bench-bar-track{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden}
+.bench-bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+.bench-bar-val{font-size:11px;font-weight:600;color:var(--ink);width:54px;text-align:right;flex-shrink:0}
+.your-bar{background:var(--green2)}.region-bar{background:#81c784}
+
+/* SUSTAINABILITY */
+.sust-layout{padding:24px 32px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.sust-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.sust-bar{height:6px;background:var(--surface3);border-radius:3px;margin-top:10px;overflow:hidden}
+.sust-bar-fill{height:100%;border-radius:3px}
+
+/* PROGRESS BAR */
+.progress-bar{height:4px;background:var(--green4);border-radius:2px;margin-bottom:0}
+.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}
+
+@media(max-width:900px){
+  .features-grid,.scores-row{grid-template-columns:repeat(2,1fr)}
+  .dash-grid{grid-template-columns:1fr 1fr}
+  .dash-main,.advisor-layout,.onboarding-layout,.sust-layout{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .bench-grid{grid-template-columns:1fr}
+  .hero h1{font-size:32px}
+  .flow-steps{flex-direction:column}
+  .flow-step{border-radius:0!important;border-left:1px solid var(--border)!important}
+  .flow-step::after{display:none}
+  nav{gap:16px;padding:0 16px}
+  nav a{font-size:12px}
+}
 </style>
 </head>
 <body>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <!-- AUTH MODAL -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-title">Welcome to AgriLait</div>
-    <div class="modal-sub">Your farm intelligence platform</div>
+    <div class="modal-title" data-i18n="welcome">Welcome to AgriLait</div>
+    <div class="modal-sub" data-i18n="platform_tagline">Your farm intelligence platform</div>
     <div class="modal-tabs">
-      <div class="modal-tab active" onclick="switchAuthTab('login')">Log In</div>
-      <div class="modal-tab" onclick="switchAuthTab('register')">Create Account</div>
+      <div class="modal-tab active" onclick="switchAuthTab('login')" data-i18n="login">Log In</div>
+      <div class="modal-tab" onclick="switchAuthTab('register')" data-i18n="create_account">Create Account</div>
     </div>
-    <!-- LOGIN FORM -->
     <div id="loginForm">
-      <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="your@email.com"></div>
-      <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
-      <button class="auth-btn" onclick="handleLogin()">Log In</button>
-      <div class="auth-msg" id="loginMsg"></div>
+      <div class="fg"><label data-i18n="email">Email</label><input type="email" id="loginEmail" placeholder="your@email.com"></div>
+      <div class="fg"><label data-i18n="password">Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div>
+      <button class="auth-btn" onclick="handleLogin()" data-i18n="login">Log In</button>
+      <div class="msg" id="loginMsg"></div>
     </div>
-    <!-- REGISTER FORM -->
     <div id="registerForm" style="display:none">
-      <div class="form-group"><label>Full Name</label><input type="text" id="regName" placeholder="Your full name"></div>
-      <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="your@email.com"></div>
-      <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="Min. 6 characters"></div>
-      <button class="auth-btn" onclick="handleRegister()">Create Account</button>
-      <div class="auth-msg" id="registerMsg"></div>
+      <div class="fg"><label data-i18n="full_name">Full Name</label><input type="text" id="regName" placeholder="Your full name"></div>
+      <div class="fg"><label data-i18n="email">Email</label><input type="email" id="regEmail" placeholder="your@email.com"></div>
+      <div class="fg"><label data-i18n="password">Password</label><input type="password" id="regPassword" placeholder="Min. 6 characters"></div>
+      <button class="auth-btn" onclick="handleRegister()" data-i18n="create_account">Create Account</button>
+      <div class="msg" id="registerMsg"></div>
     </div>
   </div>
 </div>
@@ -263,26 +277,33 @@
     <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L14 6V12L9 16L4 12V6L9 2Z" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="9" cy="9" r="2" fill="#fff"/></svg></div>
     <span class="logo-text">Agri<span>Lait</span></span>
   </div>
-  <a onclick="showView('home')" id="nav-home" class="active">Platform</a>
-  <a onclick="requireAuth('dashboard')" id="nav-dashboard">Dashboard</a>
-  <a onclick="requireAuth('advisor')" id="nav-advisor">AI Advisor</a>
-  <a onclick="requireAuth('benchmark')" id="nav-benchmark">Benchmarking</a>
-  <a onclick="requireAuth('sustainability')" id="nav-sustainability">Sustainability</a>
-  <div class="nav-right" id="navRight">
-    <button class="btn-ghost" onclick="showView('onboarding')">Register Farm</button>
-    <button class="btn-primary" onclick="openModal()">Log In</button>
+  <a onclick="showView('home')" id="nav-home" class="active" data-i18n="platform">Platform</a>
+  <a onclick="requireAuth('dashboard')" id="nav-dashboard" data-i18n="dashboard">Dashboard</a>
+  <a onclick="requireAuth('advisor')" id="nav-advisor" data-i18n="ai_advisor">AI Advisor</a>
+  <a onclick="requireAuth('benchmark')" id="nav-benchmark" data-i18n="benchmarking">Benchmarking</a>
+  <a onclick="requireAuth('sustainability')" id="nav-sustainability" data-i18n="sustainability">Sustainability</a>
+  <div class="nav-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" onclick="setLang('ar')">AR</button>
+    </div>
+    <div id="navRight">
+      <button class="btn-ghost" onclick="showView('onboarding')" data-i18n="register_farm">Register Farm</button>
+      <button class="btn-primary" onclick="openModal()" data-i18n="login">Log In</button>
+    </div>
   </div>
 </nav>
 
 <div class="tab-bar" id="tab-bar" style="display:none">
-  <div class="tab active">Overview</div>
-  <div class="tab">Herd Management</div>
-  <div class="tab">Milk Production</div>
-  <div class="tab">Feeding</div>
-  <div class="tab">Reproduction</div>
-  <div class="tab">Animal Health</div>
-  <div class="tab">Financials</div>
-  <div class="tab">Reports</div>
+  <div class="tab active" data-i18n="overview">Overview</div>
+  <div class="tab" data-i18n="herd">Herd Management</div>
+  <div class="tab" data-i18n="milk">Milk Production</div>
+  <div class="tab" data-i18n="feeding">Feeding</div>
+  <div class="tab" data-i18n="reproduction">Reproduction</div>
+  <div class="tab" data-i18n="health">Animal Health</div>
+  <div class="tab" data-i18n="financials">Financials</div>
+  <div class="tab" data-i18n="reports">Reports</div>
 </div>
 
 <!-- HOME -->
@@ -290,199 +311,121 @@
   <div class="hero">
     <div class="hero-bg"></div><div class="hero-orb"></div><div class="hero-orb2"></div>
     <div class="hero-content">
-      <div class="hero-eyebrow"><span class="hero-dot"></span>AI-Powered Dairy Consulting</div>
-      <h1>Transform Farm Data<br>into <em>Better Decisions</em></h1>
-      <p>The world's most advanced dairy farm intelligence platform. Real-time analytics, AI-driven recommendations, and expert consulting — built for tomorrow's farmer.</p>
+      <div class="hero-eyebrow"><span class="hero-dot"></span><span data-i18n="hero_eyebrow">AI-Powered Dairy Consulting</span></div>
+      <h1 data-i18n="hero_title">Transform Farm Data<br>into <em>Better Decisions</em></h1>
+      <p data-i18n="hero_sub">The world's most advanced dairy farm intelligence platform. Real-time analytics, AI-driven recommendations, and expert consulting — built for tomorrow's farmer.</p>
       <div class="hero-cta">
-        <button class="btn-hero" onclick="openModal()">Start Free — Create Account</button>
-        <button class="btn-hero-outline" onclick="requireAuth('dashboard')">Explore Dashboard →</button>
+        <button class="btn-hero" onclick="openModal()" data-i18n="start_free">Start Free — Create Account</button>
+        <button class="btn-hero-outline" onclick="requireAuth('dashboard')" data-i18n="explore_dashboard">Explore Dashboard →</button>
       </div>
       <div class="hero-stats">
-        <div><div class="hero-stat-num">2,400+</div><div class="hero-stat-label">Farms Analyzed</div></div>
-        <div><div class="hero-stat-num">18%</div><div class="hero-stat-label">Avg. Yield Increase</div></div>
-        <div><div class="hero-stat-num">34</div><div class="hero-stat-label">Countries</div></div>
+        <div><div class="hero-stat-num" id="statFarms">0</div><div class="hero-stat-label" data-i18n="farms_analyzed">Farms Registered</div></div>
+        <div><div class="hero-stat-num">18%</div><div class="hero-stat-label" data-i18n="yield_increase">Avg. Yield Increase</div></div>
+        <div><div class="hero-stat-num">3</div><div class="hero-stat-label" data-i18n="countries">Countries</div></div>
       </div>
     </div>
   </div>
   <div class="section" style="background:var(--surface2);border-bottom:1px solid var(--border)">
-    <div class="section-eyebrow">How It Works</div>
-    <div class="section-title">From Raw Data to Real Results</div>
-    <div class="section-sub">Five integrated stages that transform your farm's data into actionable intelligence.</div>
+    <div class="section-eyebrow" data-i18n="how_it_works_label">How It Works</div>
+    <div class="section-title" data-i18n="how_it_works_title">From Raw Data to Real Results</div>
+    <div class="section-sub" data-i18n="how_it_works_sub">Five integrated stages that transform your farm's data into actionable intelligence.</div>
     <div class="flow-steps">
-      <div class="flow-step"><div class="step-num">1</div><div class="step-icon">📊</div><div class="step-title">Data Collection</div><div class="step-desc">Structured onboarding covers 10 farm dimensions with guided forms</div></div>
-      <div class="flow-step"><div class="step-num">2</div><div class="step-icon">🔬</div><div class="step-title">Farm Analysis</div><div class="step-desc">AI engine processes 200+ indicators against regional datasets</div></div>
-      <div class="flow-step"><div class="step-num">3</div><div class="step-icon">🧠</div><div class="step-title">AI Recommendations</div><div class="step-desc">Personalized action plans ranked by potential impact</div></div>
-      <div class="flow-step"><div class="step-num">4</div><div class="step-icon">👨‍🌾</div><div class="step-title">Expert Support</div><div class="step-desc">On-demand access to certified vets and agri-consultants</div></div>
-      <div class="flow-step"><div class="step-num">5</div><div class="step-icon">📈</div><div class="step-title">Continuous Monitoring</div><div class="step-desc">Real-time KPI tracking with early warning alerts</div></div>
+      <div class="flow-step"><div class="step-num">1</div><div class="step-icon">📊</div><div class="step-title" data-i18n="step1_title">Data Collection</div><div class="step-desc" data-i18n="step1_desc">Structured onboarding covers 10 farm dimensions</div></div>
+      <div class="flow-step"><div class="step-num">2</div><div class="step-icon">🔬</div><div class="step-title" data-i18n="step2_title">Farm Analysis</div><div class="step-desc" data-i18n="step2_desc">AI processes 200+ indicators against regional data</div></div>
+      <div class="flow-step"><div class="step-num">3</div><div class="step-icon">🧠</div><div class="step-title" data-i18n="step3_title">AI Recommendations</div><div class="step-desc" data-i18n="step3_desc">Personalized action plans ranked by impact</div></div>
+      <div class="flow-step"><div class="step-num">4</div><div class="step-icon">👨‍🌾</div><div class="step-title" data-i18n="step4_title">Expert Support</div><div class="step-desc" data-i18n="step4_desc">On-demand access to certified consultants</div></div>
+      <div class="flow-step"><div class="step-num">5</div><div class="step-icon">📈</div><div class="step-title" data-i18n="step5_title">Continuous Monitoring</div><div class="step-desc" data-i18n="step5_desc">Real-time KPI tracking with early warning alerts</div></div>
     </div>
   </div>
   <div class="section">
-    <div class="section-eyebrow">Platform Capabilities</div>
-    <div class="section-title">Everything Your Farm Intelligence Needs</div>
+    <div class="section-eyebrow" data-i18n="capabilities_label">Platform Capabilities</div>
+    <div class="section-title" data-i18n="capabilities_title">Everything Your Farm Intelligence Needs</div>
     <div class="features-grid">
-      <div class="feat-card" onclick="requireAuth('dashboard')"><div class="feat-icon" style="background:var(--green5)">📊</div><div class="feat-title">Smart Dashboard</div><div class="feat-desc">Real-time KPI monitoring with 7 performance scores, trend analysis, and custom alerts tailored to your farm.</div></div>
-      <div class="feat-card" onclick="requireAuth('advisor')"><div class="feat-icon" style="background:#fff8e1">🤖</div><div class="feat-title">AI Farm Advisor</div><div class="feat-desc">Personalized recommendations covering nutrition, reproduction, health, and cost optimization.</div></div>
-      <div class="feat-card" onclick="requireAuth('benchmark')"><div class="feat-icon" style="background:var(--blue2)">📍</div><div class="feat-title">Benchmarking</div><div class="feat-desc">Anonymous peer comparison against regional farms with similar herd sizes and production systems.</div></div>
-      <div class="feat-card"><div class="feat-icon" style="background:#fce4ec">⚠️</div><div class="feat-title">Early Warning System</div><div class="feat-desc">Predictive alerts for heat stress, mastitis risk, fertility decline, and financial stress indicators.</div></div>
-      <div class="feat-card" onclick="requireAuth('sustainability')"><div class="feat-icon" style="background:var(--teal2)">🌿</div><div class="feat-title">Sustainability Module</div><div class="feat-desc">Carbon and water footprint per liter of milk. ISO 14040/44 LCA methodology.</div></div>
-      <div class="feat-card"><div class="feat-icon" style="background:var(--earth2)">💰</div><div class="feat-title">Economic Simulator</div><div class="feat-desc">Model scenarios with projected ROI and break-even analysis for any farm investment decision.</div></div>
+      <div class="feat-card" onclick="requireAuth('dashboard')"><div class="feat-icon" style="background:var(--green5)">📊</div><div class="feat-title" data-i18n="feat1_title">Smart Dashboard</div><div class="feat-desc" data-i18n="feat1_desc">Real-time KPI monitoring with 7 performance scores and custom alerts.</div></div>
+      <div class="feat-card" onclick="requireAuth('advisor')"><div class="feat-icon" style="background:#fff8e1">🤖</div><div class="feat-title" data-i18n="feat2_title">AI Farm Advisor</div><div class="feat-desc" data-i18n="feat2_desc">Personalized recommendations covering nutrition, reproduction, health, and costs.</div></div>
+      <div class="feat-card" onclick="requireAuth('benchmark')"><div class="feat-icon" style="background:var(--blue2)">📍</div><div class="feat-title" data-i18n="feat3_title">Benchmarking</div><div class="feat-desc" data-i18n="feat3_desc">Anonymous peer comparison against regional farms with similar herd sizes.</div></div>
+      <div class="feat-card"><div class="feat-icon" style="background:#fce4ec">⚠️</div><div class="feat-title" data-i18n="feat4_title">Early Warning System</div><div class="feat-desc" data-i18n="feat4_desc">Predictive alerts for heat stress, mastitis risk, fertility decline, and financial stress.</div></div>
+      <div class="feat-card" onclick="requireAuth('sustainability')"><div class="feat-icon" style="background:var(--teal2)">🌿</div><div class="feat-title" data-i18n="feat5_title">Sustainability Module</div><div class="feat-desc" data-i18n="feat5_desc">Carbon and water footprint per liter of milk. ISO 14040/44 LCA methodology.</div></div>
+      <div class="feat-card"><div class="feat-icon" style="background:var(--earth2)">💰</div><div class="feat-title" data-i18n="feat6_title">Economic Simulator</div><div class="feat-desc" data-i18n="feat6_desc">Model scenarios with projected ROI and break-even analysis for any investment.</div></div>
     </div>
   </div>
 </div>
 
 <!-- DASHBOARD -->
 <div class="view" id="view-dashboard">
-  <div class="dashboard-header">
-    <div style="display:flex;align-items:center;gap:14px">
-      <div class="farm-avatar">🐄</div>
-      <div><div style="font-size:16px;font-weight:600;color:var(--ink)" id="dashFarmName">Ferme El Alia — Annaba, Algeria</div><div style="font-size:12px;color:var(--ink3)">280 ha · 320 dairy cows · Holstein-Frisonne · Est. 2008</div></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <div style="font-size:12px;color:var(--ink3)">Last updated: <strong>Today, 08:34</strong></div>
-      <div class="farm-score-badge"><div class="score-num">74</div><div class="score-label">Farm Score</div></div>
-    </div>
-  </div>
-  <div class="dash-grid">
-    <div class="kpi-card"><div class="kpi-label">🥛 Daily Production</div><div class="kpi-num">7,840<span class="kpi-unit">L</span></div><div class="kpi-trend trend-up">↑ 4.2% vs last month</div></div>
-    <div class="kpi-card"><div class="kpi-label">🐄 Yield / Cow</div><div class="kpi-num">28.7<span class="kpi-unit">L/day</span></div><div class="kpi-trend trend-up">↑ 1.8% vs last month</div></div>
-    <div class="kpi-card"><div class="kpi-label">🔬 Milk Quality (SCC)</div><div class="kpi-num">198<span class="kpi-unit">k cells/mL</span></div><div class="kpi-trend trend-up">Good — target &lt;200k</div></div>
-    <div class="kpi-card"><div class="kpi-label">📋 Conception Rate</div><div class="kpi-num">58<span class="kpi-unit">%</span></div><div class="kpi-trend trend-down">↓ Below target (65%)</div></div>
-    <div class="kpi-card"><div class="kpi-label">💰 Feed Cost / L</div><div class="kpi-num">14.2<span class="kpi-unit">DZD</span></div><div class="kpi-trend trend-neutral">→ Stable</div></div>
-    <div class="kpi-card"><div class="kpi-label">🌿 Lactating Cows</div><div class="kpi-num">273<span class="kpi-unit">/320</span></div><div class="kpi-trend trend-up">85.3% in milk</div></div>
-    <div class="kpi-card"><div class="kpi-label">💊 Health Events</div><div class="kpi-num">3<span class="kpi-unit">this week</span></div><div class="kpi-trend trend-neutral">2 mastitis, 1 lameness</div></div>
-    <div class="kpi-card"><div class="kpi-label">💵 Revenue / Day</div><div class="kpi-num">117<span class="kpi-unit">k DZD</span></div><div class="kpi-trend trend-up">↑ 6.1% vs last month</div></div>
-  </div>
-  <div class="scores-section">
-    <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:12px">Performance Scores</div>
-    <div class="scores-row">
-      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#2d6a2e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="36" stroke-linecap="round"/></svg><div class="score-ring-label">74</div></div><div class="score-name">Overall</div></div>
-      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#3d8a3e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="28" stroke-linecap="round"/></svg><div class="score-ring-label">80</div></div><div class="score-name">Nutrition</div></div>
-      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#d4790a" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="57" stroke-linecap="round"/></svg><div class="score-ring-label">59</div></div><div class="score-name">Repro</div></div>
-      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#3d8a3e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="22" stroke-linecap="round"/></svg><div class="score-ring-label">84</div></div><div class="score-name">Health</div></div>
-      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#3d8a3e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="25" stroke-linecap="round"/></svg><div class="score-ring-label">82</div></div><div class="score-name">Milk</div></div>
-      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#1b6b5e" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="32" stroke-linecap="round"/></svg><div class="score-ring-label">77</div></div><div class="score-name">Sustainability</div></div>
-      <div class="score-card"><div class="score-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="22" fill="none" stroke="#1a3c8b" stroke-width="5" stroke-dasharray="138 138" stroke-dashoffset="41" stroke-linecap="round"/></svg><div class="score-ring-label">70</div></div><div class="score-name">Economic</div></div>
-    </div>
-  </div>
-  <div class="dash-main">
-    <div class="chart-card"><div class="chart-title">Milk Production Trend</div><div class="chart-sub">Daily liters — last 12 months</div><div style="position:relative;height:180px"><canvas id="milkChart"></canvas></div></div>
-    <div class="chart-card"><div class="chart-title">Feed Cost Breakdown</div><div class="chart-sub">% of total monthly feed cost</div><div style="display:flex;align-items:center;gap:16px"><div style="position:relative;width:140px;height:140px;flex-shrink:0"><canvas id="feedChart"></canvas></div><div style="font-size:11px;display:flex;flex-direction:column;gap:6px"><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#2d6a2e;display:inline-block"></span>Silage 38%</div><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#3d8a3e;display:inline-block"></span>Concentrate 29%</div><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#81c784;display:inline-block"></span>Hay 18%</div><div style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:2px;background:#c8e6c9;display:inline-block"></span>Supplements 15%</div></div></div></div>
-    <div class="alert-card"><div class="chart-title" style="margin-bottom:14px">⚠️ Active Alerts</div>
-      <div class="alert-item"><div class="alert-dot" style="background:#c0392b"></div><div><div class="alert-text">Conception rate dropped to 58% — below 65% target.</div><div class="alert-time">2 days ago · High priority</div></div></div>
-      <div class="alert-item"><div class="alert-dot" style="background:#d4790a"></div><div><div class="alert-text">Heat stress forecast for next 5 days.</div><div class="alert-time">Today · Medium priority</div></div></div>
-      <div class="alert-item"><div class="alert-dot" style="background:#2d6a2e"></div><div><div class="alert-text">Silage inventory at 62-day supply.</div><div class="alert-time">Yesterday · Low priority</div></div></div>
-      <div class="alert-item"><div class="alert-dot" style="background:#1b6b5e"></div><div><div class="alert-text">Q3 audit report ready — 3 new recommendations.</div><div class="alert-time">3 days ago · Info</div></div></div>
-    </div>
-  </div>
+  <div id="dashContent"></div>
 </div>
 
 <!-- AI ADVISOR -->
 <div class="view" id="view-advisor">
-  <div class="advisor-layout">
-    <div class="advisor-sidebar">
-      <div style="font-size:13px;font-weight:600;color:var(--ink)">Farm Context</div>
-      <div class="advisor-context">
-        <div class="context-label">Current Profile</div>
-        <div class="context-item"><span>Herd size</span><span class="context-val">320 cows</span></div>
-        <div class="context-item"><span>Avg. yield</span><span class="context-val">28.7 L</span></div>
-        <div class="context-item"><span>Conception</span><span class="context-val" style="color:var(--red)">58%</span></div>
-        <div class="context-item"><span>SCC</span><span class="context-val">198k</span></div>
-        <div class="context-item"><span>Feed cost/L</span><span class="context-val">14.2 DZD</span></div>
-      </div>
-      <div style="font-size:12px;font-weight:600;color:var(--ink2)">Focus Areas</div>
-      <div class="insight-chips">
-        <div class="chip active">🔴 Reproduction crisis</div>
-        <div class="chip">🌡️ Heat stress protocol</div>
-        <div class="chip">💊 Mastitis prevention</div>
-        <div class="chip">🌾 Feed optimization</div>
-        <div class="chip">💰 Cost reduction</div>
-      </div>
-      <button class="btn-sm btn-green" style="margin-top:auto">Generate New Report</button>
-    </div>
-    <div class="advisor-main">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div><div style="font-size:16px;font-weight:600;color:var(--ink)">AI-Powered Recommendations</div><div style="font-size:12px;color:var(--ink3);margin-top:2px">Based on your farm data · Updated daily</div></div>
-        <div class="ai-badge"><span class="ai-pulse"></span>AI Active</div>
-      </div>
-      <div class="rec-list">
-        <div class="rec-item"><div class="rec-header"><div class="rec-title">🔴 Improve Conception Rate — Priority Action</div><span class="rec-priority p-high">HIGH</span></div><div class="rec-body">Conception rate of 58% is 7 points below the 65% target. Recommend shifting inseminations to early morning (05:00–07:00), increasing water access points from 4 to 8, and adding 200g/cow/day rumen-protected fat supplement to improve energy balance during estrus.</div><div class="rec-impact">Projected gain: +11–14% conception rate within 60 days</div></div>
-        <div class="rec-item"><div class="rec-header"><div class="rec-title">🌡️ Heat Stress Mitigation Protocol</div><span class="rec-priority p-high">HIGH</span></div><div class="rec-body">THI forecast exceeds 72 for 9+ hours/day. Activate shade for dry cows, increase ventilation by 20%, add sodium bicarbonate 150g/cow/day, and move TMR feeding to 21:00 to reduce peak rumen heat.</div><div class="rec-impact">Projected gain: Reduce milk loss by 3–5%</div></div>
-        <div class="rec-item"><div class="rec-header"><div class="rec-title">🌾 Silage Quality & Ration Rebalancing</div><span class="rec-priority p-med">MEDIUM</span></div><div class="rec-body">NDF at 58% — above 52% optimal. Reducing corn silage by 10% and adding 2 kg/cow/day high-energy concentrate would improve digestibility and milk fat content above 3.8%.</div><div class="rec-impact">Projected gain: +0.8 L/cow/day, +0.1% milk fat</div></div>
-        <div class="rec-item"><div class="rec-header"><div class="rec-title">💊 Selective Dry Cow Therapy Transition</div><span class="rec-priority p-low">ROUTINE</span></div><div class="rec-body">Transitioning from blanket to selective dry cow therapy could reduce antibiotic use by 40% while maintaining udder health. Target cows with &lt;3 mastitis events/lactation.</div><div class="rec-impact">Projected saving: 18–22% reduction in antibiotic costs</div></div>
-      </div>
-    </div>
-  </div>
+  <div id="advisorContent"></div>
 </div>
 
 <!-- ONBOARDING -->
 <div class="view" id="view-onboarding">
   <div class="onboarding-layout">
     <div class="onboarding-steps">
-      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:16px;padding:0 4px">Farm Registration</div>
-      <div class="step-nav-item active"><div class="step-num-sm s-active">1</div><div class="step-nav-name">Farm Profile</div></div>
-      <div class="step-nav-item"><div class="step-num-sm s-pending">2</div><div class="step-nav-name">Herd Management</div></div>
-      <div class="step-nav-item"><div class="step-num-sm s-pending">3</div><div class="step-nav-name">Milk Production</div></div>
-      <div class="step-nav-item"><div class="step-num-sm s-pending">4</div><div class="step-nav-name">Feeding Management</div></div>
-      <div class="step-nav-item"><div class="step-num-sm s-pending">5</div><div class="step-nav-name">Animal Health</div></div>
-      <div class="step-nav-item"><div class="step-num-sm s-pending">6</div><div class="step-nav-name">Reproduction</div></div>
-      <div class="step-nav-item"><div class="step-num-sm s-pending">7</div><div class="step-nav-name">Infrastructure</div></div>
-      <div class="step-nav-item"><div class="step-num-sm s-pending">8</div><div class="step-nav-name">Financials</div></div>
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:16px;padding:0 4px" data-i18n="farm_registration">Farm Registration</div>
+      <div class="step-nav-item active"><div class="step-num-sm s-active">1</div><div class="step-nav-name" data-i18n="farm_profile">Farm Profile</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">2</div><div class="step-nav-name" data-i18n="herd">Herd Management</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">3</div><div class="step-nav-name" data-i18n="milk">Milk Production</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">4</div><div class="step-nav-name" data-i18n="feeding">Feeding</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">5</div><div class="step-nav-name" data-i18n="health">Animal Health</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">6</div><div class="step-nav-name" data-i18n="reproduction">Reproduction</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">7</div><div class="step-nav-name" data-i18n="infrastructure">Infrastructure</div></div>
+      <div class="step-nav-item"><div class="step-num-sm s-pending">8</div><div class="step-nav-name" data-i18n="financials">Financials</div></div>
     </div>
     <div class="form-section">
-      <div class="form-title">Farm Profile</div>
-      <div class="form-sub">Basic information about your farm. You must be logged in to save your data.</div>
-      <div class="form-grid" id="farmProfileForm">
-        <div class="fg"><label>Farm Name *</label><input type="text" id="f_name" placeholder="e.g. Ferme Benamar"></div>
-        <div class="fg"><label>Owner / Manager Name *</label><input type="text" id="f_owner" placeholder="Full name"></div>
-        <div class="fg"><label>Country *</label><select id="f_country"><option>Algeria</option><option>Morocco</option><option>Tunisia</option><option>Egypt</option><option>France</option><option>Other</option></select></div>
-        <div class="fg"><label>Wilaya / Region</label><input type="text" id="f_region" placeholder="e.g. Annaba"></div>
-        <div class="fg"><label>Total Farm Area (ha) *</label><input type="number" id="f_area" placeholder="e.g. 280"></div>
-        <div class="fg"><label>Years of Dairy Operation *</label><input type="number" id="f_years" placeholder="e.g. 15"></div>
-        <div class="fg"><label>Production Type</label><select id="f_production"><option>Intensive (zero-grazing)</option><option>Semi-intensive</option><option>Extensive (grazing)</option><option>Organic</option></select></div>
-        <div class="fg"><label>Ownership Status</label><select id="f_ownership"><option>Owner-operator</option><option>Tenant farmer</option><option>Cooperative member</option><option>Corporate farm</option></select></div>
-        <div class="fg full"><label>GPS Coordinates (optional)</label><input type="text" id="f_gps" placeholder="e.g. 36.9000° N, 7.7667° E"></div>
-        <div class="fg full"><label>Short Farm Description</label><textarea id="f_desc" rows="3" placeholder="Briefly describe your farm's main activities, challenges, or goals..."></textarea></div>
+      <div class="form-title" data-i18n="farm_profile">Farm Profile</div>
+      <div class="form-sub" data-i18n="farm_profile_sub">Basic information about your farm. Log in to save your data permanently.</div>
+      <div class="form-grid">
+        <div class="fg"><label data-i18n="farm_name">Farm Name *</label><input type="text" id="f_name" placeholder="e.g. Ferme Benamar"></div>
+        <div class="fg"><label data-i18n="owner_name">Owner / Manager *</label><input type="text" id="f_owner" placeholder="Full name"></div>
+        <div class="fg"><label data-i18n="country">Country *</label><select id="f_country"><option>Algeria</option><option>Morocco</option><option>Tunisia</option><option>Egypt</option><option>France</option><option>Other</option></select></div>
+        <div class="fg"><label data-i18n="region">Region / Wilaya</label><input type="text" id="f_region" placeholder="e.g. Annaba"></div>
+        <div class="fg"><label data-i18n="farm_area">Farm Area (ha) *</label><input type="number" id="f_area" placeholder="e.g. 280"></div>
+        <div class="fg"><label data-i18n="years_op">Years Operating *</label><input type="number" id="f_years" placeholder="e.g. 15"></div>
+        <div class="fg"><label data-i18n="prod_type">Production Type</label><select id="f_production"><option>Intensive (zero-grazing)</option><option>Semi-intensive</option><option>Extensive (grazing)</option><option>Organic</option></select></div>
+        <div class="fg"><label data-i18n="ownership">Ownership</label><select id="f_ownership"><option>Owner-operator</option><option>Tenant farmer</option><option>Cooperative member</option><option>Corporate farm</option></select></div>
+        <div class="fg"><label data-i18n="total_animals">Total Animals</label><input type="number" id="f_animals" placeholder="e.g. 320"></div>
+        <div class="fg"><label data-i18n="lactating">Lactating Cows</label><input type="number" id="f_lactating" placeholder="e.g. 273"></div>
+        <div class="fg"><label data-i18n="daily_yield">Daily Yield (L)</label><input type="number" id="f_yield" placeholder="e.g. 7840"></div>
+        <div class="fg"><label data-i18n="conception_rate">Conception Rate (%)</label><input type="number" id="f_conception" placeholder="e.g. 58"></div>
+        <div class="fg"><label data-i18n="scc">SCC (k cells/mL)</label><input type="number" id="f_scc" placeholder="e.g. 198"></div>
+        <div class="fg"><label data-i18n="feed_cost">Feed Cost / L (local currency)</label><input type="number" id="f_feedcost" placeholder="e.g. 14.2"></div>
+        <div class="fg full"><label data-i18n="description">Farm Description</label><textarea id="f_desc" rows="3" placeholder="Describe your farm's main activities, challenges, or goals..."></textarea></div>
       </div>
       <div class="form-footer">
-        <button class="btn-sm btn-outline-sm" onclick="showView('home')">Cancel</button>
-        <button class="btn-sm btn-green" onclick="saveFarmProfile()">Save Farm Profile →</button>
+        <button class="btn-sm btn-outline-sm" onclick="showView('home')" data-i18n="cancel">Cancel</button>
+        <button class="btn-sm btn-green" onclick="saveFarmProfile()" data-i18n="save_profile">Save Farm Profile →</button>
       </div>
-      <div class="auth-msg" id="farmMsg" style="margin-top:12px"></div>
+      <div class="msg" id="farmMsg" style="margin-top:12px"></div>
     </div>
   </div>
 </div>
 
-<!-- BENCHMARKING -->
+<!-- BENCHMARK -->
 <div class="view" id="view-benchmark">
   <div class="benchmark-layout">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <div><div class="section-eyebrow">Anonymous Benchmarking</div><div style="font-size:18px;font-weight:600;color:var(--ink)">Your Farm vs. Regional Peers</div><div style="font-size:12px;color:var(--ink3);margin-top:4px">Compared against 182 farms · Algeria · 250–350 cow herds</div></div>
-      <div style="display:flex;gap:12px"><button class="btn-ghost">Export Report</button><button class="btn-primary">Full Benchmark</button></div>
+      <div><div class="section-eyebrow" data-i18n="anon_benchmark">Anonymous Benchmarking</div><div style="font-size:18px;font-weight:600;color:var(--ink)" data-i18n="your_farm_vs">Your Farm vs. Regional Peers</div><div style="font-size:12px;color:var(--ink3);margin-top:4px" id="benchSubtitle">Loading farm data...</div></div>
+      <button class="btn-primary" onclick="requireAuth('dashboard')" data-i18n="view_dashboard">View Dashboard</button>
     </div>
-    <div class="bench-grid">
-      <div class="bench-card">
-        <div class="bench-label">🥛 Milk Production</div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Yield/cow</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:72%"></div></div><div class="bench-bar-val">28.7 L</div></div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:60%"></div></div><div class="bench-bar-val">24.1 L</div></div>
+    <div class="bench-grid" id="benchGrid">
+      <div class="bench-card"><div class="bench-label">🥛 Milk Production</div>
+        <div class="bench-bar-row"><div class="bench-bar-label" data-i18n="your_farm">Your farm</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" id="b_yield_you" style="width:0%"></div></div><div class="bench-bar-val" id="b_yield_you_val">—</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label" data-i18n="regional_avg">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:60%"></div></div><div class="bench-bar-val">24.1 L</div></div>
         <div style="height:10px"></div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Milk fat</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:76%"></div></div><div class="bench-bar-val">3.8%</div></div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:72%"></div></div><div class="bench-bar-val">3.6%</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label">SCC</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" id="b_scc_you" style="width:0%"></div></div><div class="bench-bar-val" id="b_scc_you_val">—</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label" data-i18n="regional_avg">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:75%"></div></div><div class="bench-bar-val">248k</div></div>
       </div>
-      <div class="bench-card">
-        <div class="bench-label">🐄 Reproduction</div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Conception</div><div class="bench-bar-track"><div class="bench-bar-fill" style="width:58%;background:#d4790a"></div></div><div class="bench-bar-val" style="color:var(--red)">58% ↓</div></div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:62%"></div></div><div class="bench-bar-val">62%</div></div>
-        <div style="height:10px"></div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Calving intv.</div><div class="bench-bar-track"><div class="bench-bar-fill" style="width:55%;background:#d4790a"></div></div><div class="bench-bar-val">395 d</div></div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:63%"></div></div><div class="bench-bar-val">380 d</div></div>
+      <div class="bench-card"><div class="bench-label">🐄 Reproduction</div>
+        <div class="bench-bar-row"><div class="bench-bar-label" data-i18n="your_farm">Your farm</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" id="b_conc_you" style="width:0%"></div></div><div class="bench-bar-val" id="b_conc_you_val">—</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label" data-i18n="regional_avg">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:62%"></div></div><div class="bench-bar-val">62%</div></div>
       </div>
-      <div class="bench-card">
-        <div class="bench-label">💰 Economics</div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Cost/L milk</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:54%"></div></div><div class="bench-bar-val">24.1 DZD</div></div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:60%"></div></div><div class="bench-bar-val">26.8 DZD</div></div>
-        <div style="height:10px"></div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Revenue/cow</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" style="width:74%"></div></div><div class="bench-bar-val">148k DZD</div></div>
-        <div class="bench-bar-row"><div class="bench-bar-label">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:62%"></div></div><div class="bench-bar-val">124k DZD</div></div>
+      <div class="bench-card"><div class="bench-label">💰 Feed Efficiency</div>
+        <div class="bench-bar-row"><div class="bench-bar-label" data-i18n="your_farm">Your farm</div><div class="bench-bar-track"><div class="bench-bar-fill your-bar" id="b_feed_you" style="width:0%"></div></div><div class="bench-bar-val" id="b_feed_you_val">—</div></div>
+        <div class="bench-bar-row"><div class="bench-bar-label" data-i18n="regional_avg">Regional avg</div><div class="bench-bar-track"><div class="bench-bar-fill region-bar" style="width:60%"></div></div><div class="bench-bar-val">Avg</div></div>
       </div>
       <div class="bench-card"><div style="position:relative;height:220px"><canvas id="radarChart"></canvas></div></div>
     </div>
@@ -492,16 +435,16 @@
 <!-- SUSTAINABILITY -->
 <div class="view" id="view-sustainability">
   <div style="padding:24px 32px 0">
-    <div class="section-eyebrow">Environmental Intelligence</div>
-    <div style="font-size:22px;font-weight:600;font-family:'DM Serif Display',serif;color:var(--ink);margin-bottom:4px">Sustainability & Carbon Analysis</div>
+    <div class="section-eyebrow" data-i18n="env_intelligence">Environmental Intelligence</div>
+    <div style="font-size:22px;font-weight:600;font-family:'DM Serif Display',serif;color:var(--ink);margin-bottom:4px" data-i18n="sust_title">Sustainability & Carbon Analysis</div>
     <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">LCA-based · ISO 14040/44 · Functional unit: 1 kg FPCM</div>
   </div>
   <div class="sust-layout">
     <div class="sust-card">
-      <div class="chart-title">Carbon Footprint</div>
-      <div style="text-align:center;padding:20px 0"><div style="font-family:'DM Serif Display',serif;font-size:42px;color:var(--ink)">1.18</div><div style="font-size:13px;color:var(--ink3)">kg CO₂eq / kg FPCM</div></div>
-      <div class="sust-bar"><div class="sust-bar-fill" style="width:55%;background:#2d6a2e"></div></div>
-      <div style="font-size:11px;color:var(--ink3);margin-top:6px;display:flex;justify-content:space-between"><span>Your farm: 1.18</span><span>MENA avg: 2.14</span></div>
+      <div class="chart-title" data-i18n="carbon_footprint">Carbon Footprint</div>
+      <div style="text-align:center;padding:20px 0"><div style="font-family:'DM Serif Display',serif;font-size:42px;color:var(--ink)" id="sust_carbon">—</div><div style="font-size:13px;color:var(--ink3)">kg CO₂eq / kg FPCM</div></div>
+      <div class="sust-bar"><div class="sust-bar-fill" id="sust_carbon_bar" style="width:0%;background:#2d6a2e"></div></div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:6px;display:flex;justify-content:space-between"><span data-i18n="your_farm">Your farm</span><span>MENA avg: 2.14</span></div>
       <div style="margin-top:16px;font-size:12px;color:var(--ink2)">
         <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span>Enteric fermentation</span><span style="font-weight:600">42%</span></div>
         <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)"><span>Manure management</span><span style="font-weight:600">23%</span></div>
@@ -510,106 +453,427 @@
       </div>
     </div>
     <div class="sust-card">
-      <div class="chart-title">Water Footprint</div>
-      <div style="text-align:center;padding:20px 0"><div style="font-family:'DM Serif Display',serif;font-size:42px;color:var(--ink)">285</div><div style="font-size:13px;color:var(--ink3)">L water / L milk</div></div>
-      <div class="sust-bar"><div class="sust-bar-fill" style="width:48%;background:#1b6b5e"></div></div>
-      <div style="font-size:11px;color:var(--ink3);margin-top:6px;display:flex;justify-content:space-between"><span>Your farm: 285 L</span><span>Regional avg: 590 L</span></div>
-      <div style="margin-top:16px"><div style="position:relative;height:160px"><canvas id="waterChart"></canvas></div></div>
+      <div class="chart-title" data-i18n="water_footprint">Water Footprint</div>
+      <div style="text-align:center;padding:20px 0"><div style="font-family:'DM Serif Display',serif;font-size:42px;color:var(--ink)" id="sust_water">—</div><div style="font-size:13px;color:var(--ink3)">L water / L milk</div></div>
+      <div class="sust-bar"><div class="sust-bar-fill" id="sust_water_bar" style="width:0%;background:#1b6b5e"></div></div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:6px;display:flex;justify-content:space-between"><span data-i18n="your_farm">Your farm</span><span>Regional avg: 590 L</span></div>
+      <div style="margin-top:20px;padding:14px;background:var(--green5);border:1px solid var(--green4);border-radius:8px;font-size:12px;color:var(--ink2)" id="sust_note">Enter your farm data to see your sustainability scores.</div>
     </div>
     <div class="sust-card">
-      <div class="chart-title">Resource Efficiency</div>
+      <div class="chart-title" data-i18n="resource_efficiency">Resource Efficiency</div>
       <div style="display:flex;flex-direction:column;gap:16px;margin-top:16px">
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">Energy efficiency</span><span style="font-weight:600">0.42 MJ/L</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:70%;background:#3d8a3e"></div></div></div>
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">Land use</span><span style="font-weight:600">1.8 m²/L</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:62%;background:#81c784"></div></div></div>
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">N-use efficiency</span><span style="font-weight:600;color:var(--red)">34%</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:34%;background:#d4790a"></div></div></div>
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">P-use efficiency</span><span style="font-weight:600;color:var(--red)">28%</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:28%;background:#c0392b"></div></div></div>
-        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">Feed conversion</span><span style="font-weight:600">1.12 kg DM/L</span></div><div class="sust-bar"><div class="sust-bar-fill" style="width:75%;background:#2d6a2e"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)" data-i18n="feed_conversion">Feed conversion</span><span style="font-weight:600" id="sust_fcr">—</span></div><div class="sust-bar"><div class="sust-bar-fill" id="sust_fcr_bar" style="width:0%;background:#2d6a2e"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">Milk efficiency</span><span style="font-weight:600" id="sust_eff">—</span></div><div class="sust-bar"><div class="sust-bar-fill" id="sust_eff_bar" style="width:0%;background:#3d8a3e"></div></div></div>
+        <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--ink2)">Herd utilization</span><span style="font-weight:600" id="sust_herd">—</span></div><div class="sust-bar"><div class="sust-bar-fill" id="sust_herd_bar" style="width:0%;background:#1b6b5e"></div></div></div>
       </div>
-      <div style="margin-top:20px;padding:12px;background:var(--green5);border:1px solid var(--green4);border-radius:8px;font-size:12px;color:var(--ink2)">🌱 <strong>Sustainability Score: 77/100</strong><br><span style="color:var(--ink3)">Your farm performs 45% below MENA regional average carbon intensity.</span></div>
+      <div style="margin-top:20px;padding:12px;background:var(--green5);border:1px solid var(--green4);border-radius:8px;font-size:12px;color:var(--ink2)">🌱 <span id="sust_score_text" data-i18n="sust_score_placeholder">Complete your farm profile to get your sustainability score.</span></div>
     </div>
   </div>
 </div>
 
 <script>
-// ── SUPABASE INIT ──
+// ── SUPABASE ──
 const SUPABASE_URL = 'https://prmlvxufcgeadvsmffzs.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_54Jfi6c0x20Q8pi5s2VaVQ_WSGvw29F';
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
+let farmData = null;
+
+// ── TRANSLATIONS ──
+const i18n = {
+  en: {
+    welcome:'Welcome to AgriLait',platform_tagline:'Your farm intelligence platform',
+    login:'Log In',create_account:'Create Account',email:'Email',password:'Password',full_name:'Full Name',
+    platform:'Platform',dashboard:'Dashboard',ai_advisor:'AI Advisor',benchmarking:'Benchmarking',sustainability:'Sustainability',
+    register_farm:'Register Farm',hero_eyebrow:'AI-Powered Dairy Consulting',
+    hero_title:'Transform Farm Data<br>into <em>Better Decisions</em>',
+    hero_sub:"The world's most advanced dairy farm intelligence platform.",
+    start_free:'Start Free — Create Account',explore_dashboard:'Explore Dashboard →',
+    farms_analyzed:'Farms Registered',yield_increase:'Avg. Yield Increase',countries:'Countries',
+    how_it_works_label:'How It Works',how_it_works_title:'From Raw Data to Real Results',
+    how_it_works_sub:"Five integrated stages that transform your farm's data into actionable intelligence.",
+    step1_title:'Data Collection',step1_desc:'Structured onboarding covers 10 farm dimensions',
+    step2_title:'Farm Analysis',step2_desc:'AI processes 200+ indicators against regional data',
+    step3_title:'AI Recommendations',step3_desc:'Personalized action plans ranked by impact',
+    step4_title:'Expert Support',step4_desc:'On-demand access to certified consultants',
+    step5_title:'Continuous Monitoring',step5_desc:'Real-time KPI tracking with early warning alerts',
+    capabilities_label:'Platform Capabilities',capabilities_title:'Everything Your Farm Intelligence Needs',
+    feat1_title:'Smart Dashboard',feat1_desc:'Real-time KPI monitoring with 7 performance scores.',
+    feat2_title:'AI Farm Advisor',feat2_desc:'Personalized recommendations covering nutrition, reproduction, health.',
+    feat3_title:'Benchmarking',feat3_desc:'Anonymous peer comparison against regional farms.',
+    feat4_title:'Early Warning System',feat4_desc:'Predictive alerts for heat stress, mastitis risk.',
+    feat5_title:'Sustainability Module',feat5_desc:'Carbon and water footprint per liter of milk.',
+    feat6_title:'Economic Simulator',feat6_desc:'Model scenarios with projected ROI and break-even analysis.',
+    farm_registration:'Farm Registration',farm_profile:'Farm Profile',herd:'Herd Management',
+    milk:'Milk Production',feeding:'Feeding',health:'Animal Health',reproduction:'Reproduction',
+    infrastructure:'Infrastructure',financials:'Financials',reports:'Reports',overview:'Overview',
+    farm_profile_sub:'Basic information about your farm. Log in to save your data permanently.',
+    farm_name:'Farm Name *',owner_name:'Owner / Manager *',country:'Country *',region:'Region / Wilaya',
+    farm_area:'Farm Area (ha) *',years_op:'Years Operating *',prod_type:'Production Type',
+    ownership:'Ownership',total_animals:'Total Animals',lactating:'Lactating Cows',
+    daily_yield:'Daily Yield (L)',conception_rate:'Conception Rate (%)',scc:'SCC (k cells/mL)',
+    feed_cost:'Feed Cost / L',description:'Farm Description',cancel:'Cancel',save_profile:'Save Farm Profile →',
+    anon_benchmark:'Anonymous Benchmarking',your_farm_vs:'Your Farm vs. Regional Peers',
+    your_farm:'Your farm',regional_avg:'Regional avg',view_dashboard:'View Dashboard',
+    env_intelligence:'Environmental Intelligence',sust_title:'Sustainability & Carbon Analysis',
+    carbon_footprint:'Carbon Footprint',water_footprint:'Water Footprint',resource_efficiency:'Resource Efficiency',
+    feed_conversion:'Feed conversion',sust_score_placeholder:'Complete your farm profile to get your sustainability score.',
+    no_farm_title:'No Farm Data Yet',no_farm_sub:'Register your farm to see your personalized dashboard.',
+    register_now:'Register Farm Now',ai_recs:'AI-Powered Recommendations',ai_sub:'Based on your farm data · Updated on save',
+    perf_scores:'Performance Scores',active_alerts:'Active Alerts',
+  },
+  fr: {
+    welcome:'Bienvenue sur AgriLait',platform_tagline:'Votre plateforme d\'intelligence agricole',
+    login:'Se connecter',create_account:'Créer un compte',email:'Email',password:'Mot de passe',full_name:'Nom complet',
+    platform:'Plateforme',dashboard:'Tableau de bord',ai_advisor:'Conseiller IA',benchmarking:'Benchmarking',sustainability:'Durabilité',
+    register_farm:'Inscrire ma ferme',hero_eyebrow:'Conseil laitier assisté par IA',
+    hero_title:'Transformez vos données<br>en <em>Meilleures Décisions</em>',
+    hero_sub:'La plateforme d\'intelligence agricole la plus avancée au monde.',
+    start_free:'Commencer gratuitement',explore_dashboard:'Explorer le tableau de bord →',
+    farms_analyzed:'Fermes inscrites',yield_increase:'Augmentation moy. du rendement',countries:'Pays',
+    how_it_works_label:'Comment ça marche',how_it_works_title:'Des données brutes aux résultats concrets',
+    how_it_works_sub:'Cinq étapes intégrées qui transforment vos données en intelligence actionnable.',
+    step1_title:'Collecte de données',step1_desc:'Onboarding structuré couvrant 10 dimensions',
+    step2_title:'Analyse de la ferme',step2_desc:'L\'IA traite 200+ indicateurs',
+    step3_title:'Recommandations IA',step3_desc:'Plans d\'action personnalisés',
+    step4_title:'Soutien d\'experts',step4_desc:'Accès à la demande aux consultants',
+    step5_title:'Suivi continu',step5_desc:'Suivi des KPI en temps réel',
+    capabilities_label:'Fonctionnalités',capabilities_title:'Tout ce dont votre ferme a besoin',
+    feat1_title:'Tableau de bord intelligent',feat1_desc:'Surveillance des KPI en temps réel.',
+    feat2_title:'Conseiller IA',feat2_desc:'Recommandations personnalisées.',
+    feat3_title:'Benchmarking',feat3_desc:'Comparaison anonyme avec des fermes régionales.',
+    feat4_title:'Système d\'alerte précoce',feat4_desc:'Alertes prédictives.',
+    feat5_title:'Module durabilité',feat5_desc:'Empreinte carbone par litre de lait.',
+    feat6_title:'Simulateur économique',feat6_desc:'Modélisation de scénarios avec ROI projeté.',
+    farm_registration:'Inscription de la ferme',farm_profile:'Profil de la ferme',herd:'Gestion du troupeau',
+    milk:'Production laitière',feeding:'Alimentation',health:'Santé animale',reproduction:'Reproduction',
+    infrastructure:'Infrastructure',financials:'Finance',reports:'Rapports',overview:'Vue d\'ensemble',
+    farm_profile_sub:'Informations de base sur votre ferme.',
+    farm_name:'Nom de la ferme *',owner_name:'Propriétaire / Gérant *',country:'Pays *',region:'Région / Wilaya',
+    farm_area:'Surface (ha) *',years_op:'Années d\'exploitation *',prod_type:'Type de production',
+    ownership:'Statut juridique',total_animals:'Animaux total',lactating:'Vaches en lactation',
+    daily_yield:'Rendement journalier (L)',conception_rate:'Taux de conception (%)',scc:'SCC (k cellules/mL)',
+    feed_cost:'Coût alimentation / L',description:'Description',cancel:'Annuler',save_profile:'Enregistrer →',
+    anon_benchmark:'Benchmarking anonyme',your_farm_vs:'Votre ferme vs. les pairs régionaux',
+    your_farm:'Votre ferme',regional_avg:'Moy. régionale',view_dashboard:'Voir le tableau de bord',
+    env_intelligence:'Intelligence environnementale',sust_title:'Analyse durabilité & carbone',
+    carbon_footprint:'Empreinte carbone',water_footprint:'Empreinte eau',resource_efficiency:'Efficacité des ressources',
+    feed_conversion:'Conversion alimentaire',sust_score_placeholder:'Complétez votre profil pour voir votre score.',
+    no_farm_title:'Aucune donnée de ferme',no_farm_sub:'Inscrivez votre ferme pour voir votre tableau de bord.',
+    register_now:'Inscrire ma ferme',ai_recs:'Recommandations IA',ai_sub:'Basées sur vos données · Mises à jour à chaque sauvegarde',
+    perf_scores:'Scores de performance',active_alerts:'Alertes actives',
+  },
+  ar: {
+    welcome:'مرحباً بك في AgriLait',platform_tagline:'منصة الذكاء الزراعي الخاصة بك',
+    login:'تسجيل الدخول',create_account:'إنشاء حساب',email:'البريد الإلكتروني',password:'كلمة المرور',full_name:'الاسم الكامل',
+    platform:'المنصة',dashboard:'لوحة التحكم',ai_advisor:'المستشار الذكي',benchmarking:'المقارنة المرجعية',sustainability:'الاستدامة',
+    register_farm:'تسجيل المزرعة',hero_eyebrow:'استشارات الألبان بالذكاء الاصطناعي',
+    hero_title:'حوّل بيانات مزرعتك<br>إلى <em>قرارات أفضل</em>',
+    hero_sub:'أكثر منصات استخبارات المزارع الألبانية تقدماً في العالم.',
+    start_free:'ابدأ مجاناً',explore_dashboard:'استعرض لوحة التحكم →',
+    farms_analyzed:'المزارع المسجلة',yield_increase:'متوسط زيادة الإنتاج',countries:'دول',
+    how_it_works_label:'كيف يعمل',how_it_works_title:'من البيانات الخام إلى نتائج حقيقية',
+    how_it_works_sub:'خمس مراحل متكاملة تحول بيانات مزرعتك إلى ذكاء قابل للتطبيق.',
+    step1_title:'جمع البيانات',step1_desc:'تغطي 10 أبعاد للمزرعة',
+    step2_title:'تحليل المزرعة',step2_desc:'يعالج الذكاء الاصطناعي أكثر من 200 مؤشر',
+    step3_title:'توصيات الذكاء الاصطناعي',step3_desc:'خطط عمل مخصصة',
+    step4_title:'دعم الخبراء',step4_desc:'وصول فوري إلى المستشارين',
+    step5_title:'المراقبة المستمرة',step5_desc:'تتبع مؤشرات الأداء الرئيسية في الوقت الفعلي',
+    capabilities_label:'إمكانيات المنصة',capabilities_title:'كل ما تحتاجه مزرعتك',
+    feat1_title:'لوحة تحكم ذكية',feat1_desc:'مراقبة مؤشرات الأداء في الوقت الفعلي.',
+    feat2_title:'المستشار الزراعي الذكي',feat2_desc:'توصيات مخصصة تشمل التغذية والتكاثر والصحة.',
+    feat3_title:'المقارنة المرجعية',feat3_desc:'مقارنة مجهولة مع المزارع الإقليمية.',
+    feat4_title:'نظام الإنذار المبكر',feat4_desc:'تنبيهات تنبؤية.',
+    feat5_title:'وحدة الاستدامة',feat5_desc:'البصمة الكربونية لكل لتر حليب.',
+    feat6_title:'محاكي اقتصادي',feat6_desc:'نمذجة السيناريوهات مع توقعات العائد على الاستثمار.',
+    farm_registration:'تسجيل المزرعة',farm_profile:'ملف المزرعة',herd:'إدارة القطيع',
+    milk:'إنتاج الحليب',feeding:'التغذية',health:'صحة الحيوان',reproduction:'التكاثر',
+    infrastructure:'البنية التحتية',financials:'الشؤون المالية',reports:'التقارير',overview:'نظرة عامة',
+    farm_profile_sub:'المعلومات الأساسية عن مزرعتك.',
+    farm_name:'اسم المزرعة *',owner_name:'المالك / المدير *',country:'البلد *',region:'المنطقة / الولاية',
+    farm_area:'مساحة المزرعة (هكتار) *',years_op:'سنوات التشغيل *',prod_type:'نوع الإنتاج',
+    ownership:'حالة الملكية',total_animals:'إجمالي الحيوانات',lactating:'الأبقار الحلوب',
+    daily_yield:'الإنتاج اليومي (لتر)',conception_rate:'معدل الحمل (%)',scc:'SCC (ألف خلية/مل)',
+    feed_cost:'تكلفة العلف / لتر',description:'وصف المزرعة',cancel:'إلغاء',save_profile:'حفظ ملف المزرعة →',
+    anon_benchmark:'المقارنة المرجعية المجهولة',your_farm_vs:'مزرعتك مقابل الأقران الإقليميين',
+    your_farm:'مزرعتك',regional_avg:'المتوسط الإقليمي',view_dashboard:'عرض لوحة التحكم',
+    env_intelligence:'الذكاء البيئي',sust_title:'تحليل الاستدامة والكربون',
+    carbon_footprint:'البصمة الكربونية',water_footprint:'البصمة المائية',resource_efficiency:'كفاءة الموارد',
+    feed_conversion:'معدل تحويل العلف',sust_score_placeholder:'أكمل ملف مزرعتك للحصول على درجة الاستدامة.',
+    no_farm_title:'لا توجد بيانات مزرعة بعد',no_farm_sub:'سجّل مزرعتك لرؤية لوحة التحكم الشخصية.',
+    register_now:'تسجيل المزرعة الآن',ai_recs:'توصيات الذكاء الاصطناعي',ai_sub:'بناءً على بيانات مزرعتك',
+    perf_scores:'درجات الأداء',active_alerts:'التنبيهات النشطة',
+  }
+};
+let currentLang = 'en';
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === lang));
+  document.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[lang][key]) {
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = i18n[lang][key];
+      else el.innerHTML = i18n[lang][key];
+    }
+  });
+}
+
+function t(key) { return i18n[currentLang][key] || i18n['en'][key] || key; }
 
 // ── AUTH STATE ──
-sb.auth.onAuthStateChange((event, session) => {
+sb.auth.onAuthStateChange(async (event, session) => {
   currentUser = session?.user || null;
   updateNavUI();
   if (event === 'SIGNED_IN') {
     closeModal();
-    showToast('Welcome back! 👋', 'green');
+    showToast('👋 ' + (currentUser.user_metadata?.full_name || 'Welcome back!'), 'green');
+    await loadFarmData();
+    updateLiveStats();
   }
   if (event === 'SIGNED_OUT') {
+    farmData = null;
     showView('home');
-    showToast('Logged out successfully');
+    showToast('Logged out');
   }
 });
 
-function updateNavUI() {
-  const navRight = document.getElementById('navRight');
-  if (currentUser) {
-    const email = currentUser.email;
-    const name = currentUser.user_metadata?.full_name || email.split('@')[0];
-    navRight.innerHTML = `
-      <div class="user-pill"><div class="user-dot"></div>${name}</div>
-      <button class="btn-ghost" onclick="handleLogout()">Log Out</button>
-    `;
-  } else {
-    navRight.innerHTML = `
-      <button class="btn-ghost" onclick="showView('onboarding')">Register Farm</button>
-      <button class="btn-primary" onclick="openModal()">Log In</button>
-    `;
+async function loadFarmData() {
+  if (!currentUser) return;
+  const { data, error } = await sb.from('farms').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1);
+  if (!error && data && data.length > 0) {
+    farmData = data[0];
+    updateDashboard();
+    updateBenchmark();
+    updateSustainability();
   }
 }
 
-// ── AUTH FUNCTIONS ──
-async function handleLogin() {
-  const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPassword').value;
-  const msg = document.getElementById('loginMsg');
-  if (!email || !pass) { showAuthMsg(msg, 'Please fill in all fields', 'error'); return; }
-  const btn = document.querySelector('#loginForm .auth-btn');
-  btn.disabled = true; btn.textContent = 'Logging in...';
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-  btn.disabled = false; btn.textContent = 'Log In';
-  if (error) showAuthMsg(msg, error.message, 'error');
+async function updateLiveStats() {
+  const { count } = await sb.from('farms').select('*', { count: 'exact', head: true });
+  if (count) document.getElementById('statFarms').textContent = count;
 }
 
-async function handleRegister() {
-  const name = document.getElementById('regName').value;
-  const email = document.getElementById('regEmail').value;
-  const pass = document.getElementById('regPassword').value;
-  const msg = document.getElementById('registerMsg');
-  if (!name || !email || !pass) { showAuthMsg(msg, 'Please fill in all fields', 'error'); return; }
-  if (pass.length < 6) { showAuthMsg(msg, 'Password must be at least 6 characters', 'error'); return; }
-  const btn = document.querySelector('#registerForm .auth-btn');
-  btn.disabled = true; btn.textContent = 'Creating account...';
-  const { error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
-  btn.disabled = false; btn.textContent = 'Create Account';
-  if (error) showAuthMsg(msg, error.message, 'error');
-  else showAuthMsg(msg, '✓ Account created! Check your email to confirm.', 'success');
+// ── DASHBOARD RENDER ──
+function calcScore(farm) {
+  let score = 50;
+  if (farm.daily_yield_liters > 6000) score += 8;
+  if (farm.scc_thousands && farm.scc_thousands < 200) score += 8;
+  if (farm.conception_rate_pct > 60) score += 8; else if (farm.conception_rate_pct < 50) score -= 5;
+  if (farm.lactating_cows && farm.total_animals && (farm.lactating_cows / farm.total_animals) > 0.8) score += 6;
+  if (farm.feed_cost_per_liter && farm.feed_cost_per_liter < 15) score += 5;
+  return Math.min(100, Math.max(0, score));
 }
 
-async function handleLogout() {
-  await sb.auth.signOut();
+function updateDashboard() {
+  const f = farmData;
+  if (!f) return;
+  const overall = calcScore(f);
+  const nutr = f.feed_cost_per_liter ? Math.min(100, Math.max(0, 100 - (f.feed_cost_per_liter / 20) * 40)) : 50;
+  const repro = f.conception_rate_pct ? Math.min(100, (f.conception_rate_pct / 80) * 100) : 50;
+  const health = f.scc_thousands ? Math.min(100, Math.max(0, ((400 - f.scc_thousands) / 400) * 100)) : 50;
+  const milk = f.daily_yield_liters && f.lactating_cows ? Math.min(100, ((f.daily_yield_liters / f.lactating_cows) / 35) * 100) : 50;
+  const sust = 65 + (health > 70 ? 10 : 0) + (nutr > 70 ? 5 : 0);
+  const econ = f.feed_cost_per_liter ? Math.min(100, Math.max(0, 100 - (f.feed_cost_per_liter / 25) * 60)) : 50;
+
+  const yieldPerCow = f.lactating_cows && f.daily_yield_liters ? (f.daily_yield_liters / f.lactating_cows).toFixed(1) : '—';
+  const herdPct = f.lactating_cows && f.total_animals ? ((f.lactating_cows / f.total_animals) * 100).toFixed(1) : '—';
+
+  document.getElementById('dashContent').innerHTML = `
+    <div class="dashboard-header">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="farm-avatar">🐄</div>
+        <div>
+          <div style="font-size:16px;font-weight:600;color:var(--ink)">${f.farm_name} — ${f.region || f.country}</div>
+          <div style="font-size:12px;color:var(--ink3)">${f.farm_area_ha ? f.farm_area_ha + ' ha · ' : ''}${f.total_animals || '—'} animals · ${f.production_type || ''}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:12px;color:var(--ink3)">Last updated: <strong>${new Date(f.updated_at || f.created_at).toLocaleDateString()}</strong></div>
+        <div class="farm-score-badge"><div class="score-num-big">${overall}</div><div style="font-size:11px;color:var(--ink3);margin-top:2px">Farm Score</div></div>
+      </div>
+    </div>
+    <div class="dash-grid">
+      <div class="kpi-card"><div class="kpi-label">🥛 Daily Production</div><div class="kpi-num">${f.daily_yield_liters ? f.daily_yield_liters.toLocaleString() : '—'}<span class="kpi-unit">L</span></div><div class="kpi-trend trend-neutral">Enter data to track trends</div></div>
+      <div class="kpi-card"><div class="kpi-label">🐄 Yield / Cow</div><div class="kpi-num">${yieldPerCow}<span class="kpi-unit">L/day</span></div><div class="kpi-trend ${f.daily_yield_liters / f.lactating_cows > 25 ? 'trend-up' : 'trend-down'}">${f.lactating_cows ? (f.daily_yield_liters / f.lactating_cows > 25 ? '↑ Above average' : '↓ Below average') : '—'}</div></div>
+      <div class="kpi-card"><div class="kpi-label">🔬 SCC</div><div class="kpi-num">${f.scc_thousands || '—'}<span class="kpi-unit">k cells/mL</span></div><div class="kpi-trend ${f.scc_thousands < 200 ? 'trend-up' : 'trend-down'}">${f.scc_thousands ? (f.scc_thousands < 200 ? '✓ Good — target <200k' : '⚠ Above target') : '—'}</div></div>
+      <div class="kpi-card"><div class="kpi-label">📋 Conception Rate</div><div class="kpi-num">${f.conception_rate_pct || '—'}<span class="kpi-unit">%</span></div><div class="kpi-trend ${f.conception_rate_pct >= 65 ? 'trend-up' : 'trend-down'}">${f.conception_rate_pct ? (f.conception_rate_pct >= 65 ? '✓ On target' : '↓ Below target (65%)') : '—'}</div></div>
+      <div class="kpi-card"><div class="kpi-label">💰 Feed Cost / L</div><div class="kpi-num">${f.feed_cost_per_liter || '—'}<span class="kpi-unit">${f.country === 'Algeria' ? 'DZD' : 'MAD'}</span></div><div class="kpi-trend trend-neutral">→ ${f.feed_cost_per_liter ? 'Stable' : 'Not entered'}</div></div>
+      <div class="kpi-card"><div class="kpi-label">🌿 Lactating Cows</div><div class="kpi-num">${f.lactating_cows || '—'}<span class="kpi-unit">/ ${f.total_animals || '?'}</span></div><div class="kpi-trend ${herdPct > 80 ? 'trend-up' : 'trend-neutral'}">${herdPct !== '—' ? herdPct + '% in milk' : '—'}</div></div>
+      <div class="kpi-card"><div class="kpi-label">🏗 Farm Size</div><div class="kpi-num">${f.farm_area_ha || '—'}<span class="kpi-unit">ha</span></div><div class="kpi-trend trend-neutral">${f.years_operation ? f.years_operation + ' years operating' : '—'}</div></div>
+      <div class="kpi-card"><div class="kpi-label">🌍 Location</div><div class="kpi-num" style="font-size:16px;margin-top:4px">${f.country}</div><div class="kpi-trend trend-neutral">${f.production_type || '—'}</div></div>
+    </div>
+    <div class="scores-section">
+      <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:12px">${t('perf_scores')}</div>
+      <div class="scores-row">
+        ${scoreRing(overall,'#2d6a2e','Overall')}
+        ${scoreRing(Math.round(nutr),'#3d8a3e','Nutrition')}
+        ${scoreRing(Math.round(repro),'#d4790a','Repro')}
+        ${scoreRing(Math.round(health),'#3d8a3e','Health')}
+        ${scoreRing(Math.round(milk),'#3d8a3e','Milk')}
+        ${scoreRing(Math.round(sust),'#1b6b5e','Sustain.')}
+        ${scoreRing(Math.round(econ),'#1a3c8b','Economic')}
+      </div>
+    </div>
+    <div style="padding:0 32px 32px">
+      <div class="alert-card">
+        <div class="chart-title" style="margin-bottom:14px">⚠️ ${t('active_alerts')}</div>
+        ${generateAlerts(f)}
+      </div>
+    </div>
+  `;
 }
 
-// ── SAVE FARM PROFILE ──
+function scoreRing(val, color, name) {
+  const r = 22, circ = 2 * Math.PI * r;
+  const offset = circ - (val / 100) * circ;
+  return `<div class="score-card">
+    <div class="score-ring">
+      <svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="${r}" fill="none" stroke="#e5ede0" stroke-width="5"/><circle cx="30" cy="30" r="${r}" fill="none" stroke="${color}" stroke-width="5" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:center"/></svg>
+      <div class="score-ring-label">${val}</div>
+    </div>
+    <div class="score-name">${name}</div>
+  </div>`;
+}
+
+function generateAlerts(f) {
+  let alerts = [];
+  if (f.conception_rate_pct && f.conception_rate_pct < 60) alerts.push({color:'#c0392b',text:`Conception rate at ${f.conception_rate_pct}% — below 65% target. Review AI protocol.`,time:'High priority'});
+  if (f.scc_thousands && f.scc_thousands > 250) alerts.push({color:'#d4790a',text:`SCC at ${f.scc_thousands}k — above premium threshold. Check for mastitis.`,time:'Medium priority'});
+  if (f.lactating_cows && f.total_animals && (f.lactating_cows/f.total_animals) < 0.75) alerts.push({color:'#d4790a',text:`Only ${((f.lactating_cows/f.total_animals)*100).toFixed(0)}% of herd in milk — below 80% target.`,time:'Medium priority'});
+  if (alerts.length === 0) alerts.push({color:'#2d6a2e',text:'No critical alerts. Farm data looks healthy. Add more data for detailed analysis.',time:'Info'});
+  return alerts.map(a => `<div class="alert-item"><div class="alert-dot" style="background:${a.color}"></div><div><div class="alert-text">${a.text}</div><div class="alert-time">${a.time}</div></div></div>`).join('');
+}
+
+// ── AI ADVISOR ──
+function updateAdvisor() {
+  if (!farmData) {
+    document.getElementById('advisorContent').innerHTML = noDataHTML();
+    return;
+  }
+  const f = farmData;
+  const recs = generateRecommendations(f);
+  document.getElementById('advisorContent').innerHTML = `
+    <div class="advisor-layout">
+      <div class="advisor-sidebar">
+        <div style="font-size:13px;font-weight:600;color:var(--ink)">Farm Context</div>
+        <div class="advisor-context">
+          <div class="context-label">Current Profile</div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:3px 0"><span>Farm</span><span style="font-weight:600;color:var(--ink)">${f.farm_name}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:3px 0"><span>Animals</span><span style="font-weight:600;color:var(--ink)">${f.total_animals || '—'}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:3px 0"><span>Yield/day</span><span style="font-weight:600;color:var(--ink)">${f.daily_yield_liters || '—'} L</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:3px 0"><span>Conception</span><span style="font-weight:600;color:${f.conception_rate_pct < 60 ? 'var(--red)' : 'var(--ink)'}">${f.conception_rate_pct || '—'}%</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);padding:3px 0"><span>SCC</span><span style="font-weight:600;color:var(--ink)">${f.scc_thousands || '—'}k</span></div>
+        </div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink2)">Focus Areas</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${recs.map((r,i) => `<div class="chip ${i===0?'active':''}">${r.icon} ${r.area}</div>`).join('')}
+        </div>
+        <button class="btn-sm btn-green" style="margin-top:auto" onclick="requireAuth('onboarding')">Update Farm Data</button>
+      </div>
+      <div class="advisor-main">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div><div style="font-size:16px;font-weight:600;color:var(--ink)">${t('ai_recs')}</div><div style="font-size:12px;color:var(--ink3);margin-top:2px">${t('ai_sub')}</div></div>
+          <div class="ai-badge"><span class="ai-pulse"></span>AI Active</div>
+        </div>
+        <div class="rec-list">${recs.map(r => `
+          <div class="rec-item">
+            <div class="rec-header"><div class="rec-title">${r.icon} ${r.title}</div><span class="rec-priority ${r.pClass}">${r.priority}</span></div>
+            <div class="rec-body">${r.body}</div>
+            <div class="rec-impact">${r.impact}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', function(){ document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); this.classList.add('active') }));
+}
+
+function generateRecommendations(f) {
+  const recs = [];
+  if (f.conception_rate_pct && f.conception_rate_pct < 65) {
+    recs.push({icon:'🔴',area:'Reproduction',title:`Improve Conception Rate (currently ${f.conception_rate_pct}%)`,priority:'HIGH',pClass:'p-high',body:`Your conception rate of ${f.conception_rate_pct}% is ${65 - f.conception_rate_pct} points below the 65% target. Recommend shifting inseminations to early morning (05:00–07:00), increasing water access points, and adding 200g/cow/day rumen-protected fat to improve energy balance during estrus.`,impact:`Projected gain: +${Math.round((65-f.conception_rate_pct)*0.6)}–${Math.round((65-f.conception_rate_pct)*0.9)}% conception rate within 60 days`});
+  }
+  if (f.scc_thousands && f.scc_thousands > 200) {
+    recs.push({icon:'💊',area:'Mastitis Control',title:`Reduce SCC from ${f.scc_thousands}k`,priority:'HIGH',pClass:'p-high',body:`SCC of ${f.scc_thousands}k cells/mL exceeds the premium milk threshold of 200k. Implement post-milking teat dipping with an approved disinfectant, check milking machine settings, and isolate high-SCC cows for targeted treatment.`,impact:`Projected gain: Premium milk price bonus + reduced antibiotic costs`});
+  }
+  if (f.daily_yield_liters && f.lactating_cows && (f.daily_yield_liters/f.lactating_cows) < 25) {
+    const ypc = (f.daily_yield_liters/f.lactating_cows).toFixed(1);
+    recs.push({icon:'🌾',area:'Nutrition',title:`Increase yield per cow from ${ypc} L/day`,priority:'MEDIUM',pClass:'p-med',body:`Average yield of ${ypc} L/cow/day is below the regional target of 25–30 L. Review your total mixed ration (TMR) for energy density, ensure NDF is between 28–32% of dry matter, and consider adding bypass protein supplement at 150–200g/cow/day.`,impact:`Projected gain: +2–4 L/cow/day with ration optimization`});
+  }
+  if (f.feed_cost_per_liter && f.feed_cost_per_liter > 16) {
+    recs.push({icon:'💰',area:'Cost Reduction',title:`Reduce Feed Cost (${f.feed_cost_per_liter}/L)`,priority:'MEDIUM',pClass:'p-med',body:`Feed cost of ${f.feed_cost_per_liter} per liter is above the efficient benchmark. Consider increasing homegrown forage proportion, negotiating bulk purchase contracts with feed suppliers, and using a precision feeding approach to reduce waste.`,impact:`Projected saving: 10–18% reduction in feed costs per liter`});
+  }
+  if (f.lactating_cows && f.total_animals && (f.lactating_cows/f.total_animals) < 0.80) {
+    const pct = ((f.lactating_cows/f.total_animals)*100).toFixed(0);
+    recs.push({icon:'📈',area:'Herd Efficiency',title:`Improve herd utilization (${pct}% in milk)`,priority:'LOW',pClass:'p-low',body:`Only ${pct}% of your herd is currently in milk, below the 80–85% efficiency target. Review your culling strategy, pregnancy monitoring protocol, and transition cow management to reduce dry period length.`,impact:`Projected gain: +${Math.round((0.82 - f.lactating_cows/f.total_animals) * f.total_animals)} additional lactating cows`});
+  }
+  if (recs.length === 0) {
+    recs.push({icon:'✅',area:'General',title:'Farm performing well — continue monitoring',priority:'GOOD',pClass:'p-low',body:`Based on the data entered, your farm is performing at or above targets. Continue monitoring key indicators and update your data regularly to receive more precise recommendations.`,impact:'Keep tracking: add more data for deeper insights'});
+  }
+  return recs;
+}
+
+// ── BENCHMARK ──
+function updateBenchmark() {
+  if (!farmData) return;
+  const f = farmData;
+  const yieldPct = f.daily_yield_liters && f.lactating_cows ? Math.min(100, ((f.daily_yield_liters/f.lactating_cows)/35)*100) : 0;
+  const sccPct = f.scc_thousands ? Math.min(100, Math.max(0, ((400-f.scc_thousands)/400)*100)) : 0;
+  const concPct = f.conception_rate_pct ? Math.min(100, f.conception_rate_pct) : 0;
+  const feedPct = f.feed_cost_per_liter ? Math.min(100, Math.max(0, 100-(f.feed_cost_per_liter/25)*100)) : 0;
+  document.getElementById('benchSubtitle').textContent = `Farm: ${f.farm_name} · ${f.country}`;
+  document.getElementById('b_yield_you').style.width = yieldPct + '%';
+  document.getElementById('b_yield_you_val').textContent = f.daily_yield_liters && f.lactating_cows ? (f.daily_yield_liters/f.lactating_cows).toFixed(1)+' L' : '—';
+  document.getElementById('b_scc_you').style.width = sccPct + '%';
+  document.getElementById('b_scc_you_val').textContent = f.scc_thousands ? f.scc_thousands+'k' : '—';
+  document.getElementById('b_conc_you').style.width = concPct + '%';
+  document.getElementById('b_conc_you_val').textContent = f.conception_rate_pct ? f.conception_rate_pct+'%' : '—';
+  document.getElementById('b_feed_you').style.width = feedPct + '%';
+  document.getElementById('b_feed_you_val').textContent = f.feed_cost_per_liter ? f.feed_cost_per_liter : '—';
+  initBench(f);
+}
+
+// ── SUSTAINABILITY CALC ──
+function updateSustainability() {
+  if (!farmData) return;
+  const f = farmData;
+  if (!f.daily_yield_liters || !f.total_animals) return;
+  const ypc = f.daily_yield_liters / (f.lactating_cows || f.total_animals * 0.8);
+  const carbon = (2.4 - (ypc / 30) * 0.8).toFixed(2);
+  const water = Math.round(600 - (ypc / 30) * 200);
+  const fcr = (1.4 - (ypc / 30) * 0.3).toFixed(2);
+  const milkEff = Math.min(100, (ypc / 35) * 100).toFixed(0);
+  const herdEff = f.lactating_cows && f.total_animals ? ((f.lactating_cows/f.total_animals)*100).toFixed(0) : '—';
+  document.getElementById('sust_carbon').textContent = carbon;
+  document.getElementById('sust_carbon_bar').style.width = Math.min(100, (2.5-carbon)/2.5*100) + '%';
+  document.getElementById('sust_water').textContent = water;
+  document.getElementById('sust_water_bar').style.width = Math.min(100, (650-water)/650*100) + '%';
+  document.getElementById('sust_fcr').textContent = fcr + ' kg DM/L';
+  document.getElementById('sust_fcr_bar').style.width = Math.min(100, (1.5-fcr)/1.5*100) + '%';
+  document.getElementById('sust_eff').textContent = milkEff + '%';
+  document.getElementById('sust_eff_bar').style.width = milkEff + '%';
+  document.getElementById('sust_herd').textContent = herdEff + '%';
+  document.getElementById('sust_herd_bar').style.width = herdEff + '%';
+  const sustScore = Math.round(60 + (ypc/35)*25 + (f.scc_thousands < 200 ? 10 : 0));
+  document.getElementById('sust_score_text').textContent = `🌱 Sustainability Score: ${sustScore}/100 — Your carbon intensity is ${carbon} kg CO₂eq/kg FPCM vs MENA avg 2.14`;
+  document.getElementById('sust_note').textContent = `Your water footprint is ${water} L/L milk — ${water < 400 ? 'better than' : 'close to'} regional average of 590 L/L milk.`;
+}
+
+function noDataHTML() {
+  return `<div class="no-data">
+    <div class="no-data-icon">🌾</div>
+    <div class="no-data-title">${t('no_farm_title')}</div>
+    <div class="no-data-sub">${t('no_farm_sub')}</div>
+    <button class="btn-primary" onclick="showView('onboarding')">${t('register_now')}</button>
+  </div>`;
+}
+
+// ── SAVE FARM ──
 async function saveFarmProfile() {
   const msg = document.getElementById('farmMsg');
-  if (!currentUser) {
-    showAuthMsg(msg, 'Please log in first to save your farm data.', 'error');
-    openModal(); return;
-  }
-  const farmData = {
+  if (!currentUser) { showMsg(msg, 'Please log in first to save your data.', 'error'); openModal(); return; }
+  const data = {
     user_id: currentUser.id,
     farm_name: document.getElementById('f_name').value,
     owner_name: document.getElementById('f_owner').value,
@@ -619,16 +883,92 @@ async function saveFarmProfile() {
     years_operation: parseInt(document.getElementById('f_years').value) || null,
     production_type: document.getElementById('f_production').value,
     ownership_status: document.getElementById('f_ownership').value,
-    gps_coordinates: document.getElementById('f_gps').value,
-    description: document.getElementById('f_desc').value
+    description: document.getElementById('f_desc').value,
+    total_animals: parseInt(document.getElementById('f_animals').value) || null,
+    lactating_cows: parseInt(document.getElementById('f_lactating').value) || null,
+    daily_yield_liters: parseFloat(document.getElementById('f_yield').value) || null,
+    conception_rate_pct: parseFloat(document.getElementById('f_conception').value) || null,
+    scc_thousands: parseFloat(document.getElementById('f_scc').value) || null,
+    feed_cost_per_liter: parseFloat(document.getElementById('f_feedcost').value) || null,
+    updated_at: new Date().toISOString()
   };
-  if (!farmData.farm_name) { showAuthMsg(msg, 'Farm name is required.', 'error'); return; }
+  if (!data.farm_name) { showMsg(msg, 'Farm name is required.', 'error'); return; }
   const btn = document.querySelector('.form-footer .btn-green');
   btn.disabled = true; btn.textContent = 'Saving...';
-  const { error } = await sb.from('farms').insert([farmData]);
-  btn.disabled = false; btn.textContent = 'Save Farm Profile →';
-  if (error) showAuthMsg(msg, 'Error: ' + error.message, 'error');
-  else { showAuthMsg(msg, '✓ Farm profile saved successfully!', 'success'); showToast('Farm saved! 🌾', 'green'); }
+  const existing = await sb.from('farms').select('id').eq('user_id', currentUser.id).limit(1);
+  let error;
+  if (existing.data && existing.data.length > 0) {
+    ({ error } = await sb.from('farms').update(data).eq('id', existing.data[0].id));
+  } else {
+    ({ error } = await sb.from('farms').insert([data]));
+  }
+  btn.disabled = false; btn.textContent = t('save_profile');
+  if (error) showMsg(msg, 'Error: ' + error.message, 'error');
+  else {
+    showMsg(msg, '✓ Farm saved successfully!', 'success');
+    showToast('Farm data saved! 🌾', 'green');
+    await loadFarmData();
+    await updateLiveStats();
+  }
+}
+
+// ── AUTH ──
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPassword').value;
+  const msg = document.getElementById('loginMsg');
+  if (!email || !pass) { showMsg(msg, 'Please fill in all fields.', 'error'); return; }
+  const btn = document.querySelector('#loginForm .auth-btn');
+  btn.disabled = true; btn.textContent = 'Logging in...';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false; btn.textContent = t('login');
+  if (error) showMsg(msg, error.message, 'error');
+}
+
+async function handleRegister() {
+  const name = document.getElementById('regName').value;
+  const email = document.getElementById('regEmail').value;
+  const pass = document.getElementById('regPassword').value;
+  const msg = document.getElementById('registerMsg');
+  if (!name || !email || !pass) { showMsg(msg, 'Please fill in all fields.', 'error'); return; }
+  if (pass.length < 6) { showMsg(msg, 'Password must be at least 6 characters.', 'error'); return; }
+  const btn = document.querySelector('#registerForm .auth-btn');
+  btn.disabled = true; btn.textContent = 'Creating account...';
+  const { error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
+  btn.disabled = false; btn.textContent = t('create_account');
+  if (error) showMsg(msg, error.message, 'error');
+  else showMsg(msg, '✓ Account created! Check your email to confirm, then log in.', 'success');
+}
+
+async function handleLogout() { await sb.auth.signOut(); }
+
+function updateNavUI() {
+  const navRight = document.getElementById('navRight');
+  if (currentUser) {
+    const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+    navRight.innerHTML = `<div class="user-pill"><div class="user-dot"></div>${name}</div><button class="btn-ghost" onclick="handleLogout()">Log Out</button>`;
+  } else {
+    navRight.innerHTML = `<button class="btn-ghost" onclick="showView('onboarding')" data-i18n="register_farm">Register Farm</button><button class="btn-primary" onclick="openModal()" data-i18n="login">Log In</button>`;
+  }
+}
+
+// ── NAVIGATION ──
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('nav a[id^="nav-"]').forEach(el => el.classList.remove('active'));
+  const n = document.getElementById('nav-'+v); if(n) n.classList.add('active');
+  document.getElementById('tab-bar').style.display = v==='dashboard' ? 'flex' : 'none';
+  window.scrollTo(0,0);
+  if (v==='dashboard') { farmData ? updateDashboard() : document.getElementById('dashContent').innerHTML = noDataHTML(); }
+  if (v==='advisor') { updateAdvisor(); }
+  if (v==='benchmark') { if(farmData) updateBenchmark(); initBench(farmData); }
+  if (v==='sustainability') { if(farmData) updateSustainability(); initSust(); }
+}
+
+function requireAuth(v) {
+  if (currentUser) showView(v);
+  else { openModal(); showToast('Please log in to access this section'); }
 }
 
 // ── MODAL ──
@@ -641,54 +981,35 @@ function switchAuthTab(tab) {
 }
 document.getElementById('authModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal() });
 
-function requireAuth(view) {
-  if (currentUser) showView(view);
-  else { openModal(); showToast('Please log in to access this section') }
-}
-
 // ── HELPERS ──
-function showAuthMsg(el, text, type) {
-  el.textContent = text; el.className = 'auth-msg ' + type; el.style.display = 'block';
-}
-function showToast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-// ── NAVIGATION ──
-function showView(v) {
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-'+v).classList.add('active');
-  document.querySelectorAll('nav a[id^="nav-"]').forEach(el => el.classList.remove('active'));
-  const n = document.getElementById('nav-'+v); if(n) n.classList.add('active');
-  document.getElementById('tab-bar').style.display = v==='dashboard' ? 'flex' : 'none';
-  window.scrollTo(0,0);
-  if(v==='dashboard') initDash();
-  if(v==='benchmark') initBench();
-  if(v==='sustainability') initSust();
-}
+function showMsg(el, text, type) { el.textContent=text; el.className='msg '+type; el.style.display='block'; }
+function showToast(msg, type='') { const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type+' show'; setTimeout(()=>t.classList.remove('show'),3000); }
 
 // ── CHARTS ──
-let di=false,bi=false,si=false;
-function initDash(){
-  if(di)return;di=true;
-  new Chart(document.getElementById('milkChart'),{type:'line',data:{labels:['Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun'],datasets:[{data:[7200,6800,7100,7400,7600,7900,7500,7300,7600,7800,7700,7840],borderColor:'#2d6a2e',backgroundColor:'rgba(45,106,46,0.07)',tension:0.4,fill:true,pointRadius:3,pointBackgroundColor:'#2d6a2e'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#6b8e6c'}},x:{grid:{display:false},ticks:{font:{size:10},color:'#6b8e6c'}}}}});
-  new Chart(document.getElementById('feedChart'),{type:'doughnut',data:{labels:['Silage','Concentrate','Hay','Supplements'],datasets:[{data:[38,29,18,15],backgroundColor:['#2d6a2e','#3d8a3e','#81c784','#c8e6c9'],borderWidth:0}]},options:{responsive:false,plugins:{legend:{display:false}},cutout:'68%'}});
-}
-function initBench(){
-  if(bi)return;bi=true;
-  new Chart(document.getElementById('radarChart'),{type:'radar',data:{labels:['Milk','Nutrition','Repro','Health','Sustain.','Economic'],datasets:[{label:'Your Farm',data:[82,80,59,84,77,70],borderColor:'#2d6a2e',backgroundColor:'rgba(45,106,46,0.12)',pointBackgroundColor:'#2d6a2e'},{label:'Regional Avg',data:[68,65,62,70,58,65],borderColor:'#81c784',backgroundColor:'rgba(129,199,132,0.08)',pointBackgroundColor:'#81c784',borderDash:[4,4]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:'#3a5a3b'}}},scales:{r:{grid:{color:'rgba(0,0,0,0.06)'},pointLabels:{font:{size:10},color:'#3a5a3b'},ticks:{display:false},min:0,max:100}}}});
+let bi=false,si=false;
+function initBench(f) {
+  if(bi) return; bi=true;
+  const yours = f ? [
+    Math.round(f.daily_yield_liters&&f.lactating_cows?(f.daily_yield_liters/f.lactating_cows/35)*100:50),
+    f.feed_cost_per_liter?Math.round(100-(f.feed_cost_per_liter/25)*100):50,
+    f.conception_rate_pct?Math.round(f.conception_rate_pct):50,
+    f.scc_thousands?Math.round(((400-f.scc_thousands)/400)*100):50,
+    65,60
+  ] : [50,50,50,50,65,60];
+  new Chart(document.getElementById('radarChart'),{type:'radar',data:{labels:['Milk','Cost Eff.','Repro','Health','Sustain.','Economic'],datasets:[{label:'Your Farm',data:yours,borderColor:'#2d6a2e',backgroundColor:'rgba(45,106,46,0.12)',pointBackgroundColor:'#2d6a2e'},{label:'Regional Avg',data:[68,65,62,70,58,65],borderColor:'#81c784',backgroundColor:'rgba(129,199,132,0.08)',pointBackgroundColor:'#81c784',borderDash:[4,4]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:'#3a5a3b'}}},scales:{r:{grid:{color:'rgba(0,0,0,0.06)'},pointLabels:{font:{size:10},color:'#3a5a3b'},ticks:{display:false},min:0,max:100}}}});
 }
 function initSust(){
   if(si)return;si=true;
-  new Chart(document.getElementById('waterChart'),{type:'bar',data:{labels:['Green','Blue','Grey'],datasets:[{label:'Your farm',data:[164,68,53],backgroundColor:['#3d8a3e','#1a3c8b','#81c784']},{label:'Regional avg',data:[340,150,100],backgroundColor:['rgba(129,199,132,0.3)','rgba(26,60,139,0.2)','rgba(61,138,62,0.2)']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:'#3a5a3b'}}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:9},color:'#6b8e6c'}},x:{grid:{display:false},ticks:{font:{size:9},color:'#6b8e6c'}}}}});
+  const wc = document.getElementById('waterChart');
+  if(wc) new Chart(wc,{type:'bar',data:{labels:['Green','Blue','Grey'],datasets:[{label:'Your farm',data:[164,68,53],backgroundColor:['#3d8a3e','#1a3c8b','#81c784']},{label:'Regional avg',data:[340,150,100],backgroundColor:['rgba(129,199,132,0.3)','rgba(26,60,139,0.2)','rgba(61,138,62,0.2)']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10},color:'#3a5a3b'}}},scales:{y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:9},color:'#6b8e6c'}},x:{grid:{display:false},ticks:{font:{size:9},color:'#6b8e6c'}}}}});
 }
 
 // ── TABS & STEPS ──
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function(){ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); this.classList.add('active') }));
 document.querySelectorAll('.step-nav-item').forEach((item,i) => item.addEventListener('click', function(){ document.querySelectorAll('.step-nav-item').forEach((s,j)=>{ s.classList.remove('active'); s.querySelector('.step-num-sm').className='step-num-sm '+(j<i?'s-complete':j===i?'s-active':'s-pending') }); this.classList.add('active') }));
-document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', function(){ document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); this.classList.add('active') }));
+
+// ── INIT ──
+updateLiveStats();
 </script>
 </body>
 </html>
