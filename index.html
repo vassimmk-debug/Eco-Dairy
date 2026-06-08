@@ -934,31 +934,27 @@ async function saveFarmProfile() {
   // Loading state
   if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
 
+  // Timeout safety — if save takes >10s, abort and show error
+  const timeout = setTimeout(() => {
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Farm Profile →'; }
+    showMsg(msg, 'Request timed out. Check your connection or RLS policies.', 'error');
+    alert('TIMEOUT: The save request hung for 10 seconds.\n\nThis usually means a Row Level Security (RLS) policy is blocking the request. Send this message to get the fix.');
+  }, 10000);
+
   try {
-    // Check if farm already exists for this user
-    const { data: existing, error: fetchErr } = await sb
+    // Use upsert — simpler and avoids the select-then-insert hang
+    const { data: result, error: saveError } = await sb
       .from('farms')
-      .select('id')
-      .eq('user_id', currentUser.id)
-      .limit(1);
+      .upsert(data, { onConflict: 'user_id' })
+      .select();
 
-    if (fetchErr) throw new Error(fetchErr.message);
-
-    let saveError;
-    if (existing && existing.length > 0) {
-      const { error } = await sb.from('farms').update(data).eq('id', existing[0].id);
-      saveError = error;
-    } else {
-      const { error } = await sb.from('farms').insert([data]);
-      saveError = error;
-    }
+    clearTimeout(timeout);
 
     if (saveError) {
-      const e = new Error(saveError.message || 'Unknown error');
-      e.details = saveError.details;
-      e.hint = saveError.hint;
-      e.code = saveError.code;
-      throw e;
+      const detail = (saveError.message || 'Unknown') + (saveError.details ? ' | ' + saveError.details : '') + (saveError.hint ? ' | ' + saveError.hint : '') + (saveError.code ? ' [' + saveError.code + ']' : '');
+      showMsg(msg, 'ERROR: ' + detail, 'error');
+      alert('Save failed:\n\n' + detail);
+      return;
     }
 
     // Success
@@ -968,12 +964,11 @@ async function saveFarmProfile() {
     await updateLiveStats();
 
   } catch (err) {
+    clearTimeout(timeout);
     console.error('Save error full:', err);
-    const detail = err.message + (err.details ? ' | ' + err.details : '') + (err.hint ? ' | ' + err.hint : '');
-    showMsg(msg, 'ERROR: ' + detail, 'error');
-    alert('Save failed:\n\n' + detail);
+    showMsg(msg, 'ERROR: ' + err.message, 'error');
+    alert('Save exception:\n\n' + err.message);
   } finally {
-    // Always re-enable button
     if (btn) { btn.disabled = false; btn.textContent = 'Save Farm Profile →'; }
   }
 }
