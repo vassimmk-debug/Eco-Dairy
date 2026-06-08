@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -475,7 +475,7 @@ nav a:hover,nav a.active{color:var(--green);border-bottom-color:var(--green)}
 <script>
 // ── SUPABASE ──
 const SUPABASE_URL = 'https://prmlvxufcgeadvsmffzs.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_54Jfi6c0x20Q8pi5s2VaVQ_WSGvw29F';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBybWx2eHVmY2dlYWR2c21mZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzYxMzAsImV4cCI6MjA5NjM1MjEzMH0.LXRfU3j_7fsOOdjNA6r-UU5B9sCF6v6rixB0h11J7Jg';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 let farmData = null;
