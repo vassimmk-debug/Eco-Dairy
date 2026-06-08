@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AgriLait Connection Test</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:system-ui,sans-serif;max-width:800px;margin:40px auto;padding:20px;background:#f5f5f5}
+h1{color:#2d6a2e}
+.test{background:#fff;border:1px solid #ddd;border-radius:8px;padding:16px;margin:12px 0}
+.test h3{margin:0 0 8px;font-size:15px}
+.status{font-weight:bold;padding:2px 8px;border-radius:4px;font-size:13px}
+.pending{background:#fff8e1;color:#e65100}
+.pass{background:#e8f5e9;color:#2e7d32}
+.fail{background:#ffebee;color:#c62828}
+pre{background:#f0f0f0;padding:12px;border-radius:6px;font-size:12px;overflow-x:auto;white-space:pre-wrap;margin:8px 0 0}
+button{background:#2d6a2e;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;cursor:pointer;margin:8px 0}
+input{padding:8px;border:1px solid #ccc;border-radius:6px;width:100%;margin:4px 0;box-sizing:border-box}
+</style>
+</head>
+<body>
+<h1>🔧 AgriLait Connection Diagnostic</h1>
+<p>This tests each part of the Supabase connection separately to find exactly what's failing.</p>
+
+<div class="test">
+  <h3>1. Supabase Library Loaded <span class="status pending" id="s1">checking...</span></h3>
+  <pre id="d1"></pre>
+</div>
+
+<div class="test">
+  <h3>2. Client Created <span class="status pending" id="s2">checking...</span></h3>
+  <pre id="d2"></pre>
+</div>
+
+<div class="test">
+  <h3>3. Database Reachable (read test) <span class="status pending" id="s3">checking...</span></h3>
+  <pre id="d3"></pre>
+</div>
+
+<div class="test">
+  <h3>4. Login Test</h3>
+  <input id="email" placeholder="your email" type="email">
+  <input id="pass" placeholder="your password" type="password">
+  <button onclick="testLogin()">Test Login</button>
+  <span class="status pending" id="s4">waiting...</span>
+  <pre id="d4"></pre>
+</div>
+
+<div class="test">
+  <h3>5. Save Test (login first) <span class="status pending" id="s5">waiting...</span></h3>
+  <button onclick="testSave()">Test Save</button>
+  <pre id="d5"></pre>
+</div>
+
+<script>
+const URL = 'https://prmlvxufcgeadvsmffzs.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBybWx2eHVmY2dlYWR2c21mZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NzYxMzAsImV4cCI6MjA5NjM1MjEzMH0.LXRfU3j_7fsOOdjNA6r-UU5B9sCF6v6rixB0h11J7Jg';
+
+function set(id, status, cls, detail) {
+  document.getElementById('s'+id).textContent = status;
+  document.getElementById('s'+id).className = 'status ' + cls;
+  if (detail) document.getElementById('d'+id).textContent = detail;
+}
+
+let sb;
+
+// Test 1: library
+if (typeof supabase !== 'undefined') {
+  set(1, 'PASS', 'pass', 'Supabase library loaded successfully');
+  // Test 2: client
+  try {
+    sb = supabase.createClient(URL, KEY);
+    set(2, 'PASS', 'pass', 'Client created. URL: ' + URL);
+    // Test 3: read
+    (async () => {
+      const timeout = setTimeout(() => {
+        set(3, 'TIMEOUT', 'fail', 'Database did not respond in 8 seconds.\nThis means the browser cannot reach Supabase REST API.\nLikely causes: project paused, API disabled, or network/firewall block.');
+      }, 8000);
+      try {
+        const { data, error } = await sb.from('farms').select('count');
+        clearTimeout(timeout);
+        if (error) {
+          set(3, 'FAIL', 'fail', 'Error: ' + JSON.stringify(error, null, 2));
+        } else {
+          set(3, 'PASS', 'pass', 'Database reachable! Response: ' + JSON.stringify(data));
+        }
+      } catch(e) {
+        clearTimeout(timeout);
+        set(3, 'FAIL', 'fail', 'Exception: ' + e.message);
+      }
+    })();
+  } catch(e) {
+    set(2, 'FAIL', 'fail', 'Error creating client: ' + e.message);
+  }
+} else {
+  set(1, 'FAIL', 'fail', 'Supabase library did NOT load. CDN may be blocked.');
+}
+
+async function testLogin() {
+  set(4, 'testing...', 'pending', '');
+  const email = document.getElementById('email').value;
+  const pass = document.getElementById('pass').value;
+  const timeout = setTimeout(() => set(4, 'TIMEOUT', 'fail', 'Login timed out after 8s'), 8000);
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    clearTimeout(timeout);
+    if (error) set(4, 'FAIL', 'fail', 'Login error: ' + error.message);
+    else set(4, 'PASS', 'pass', 'Logged in as: ' + data.user.email + '\nUser ID: ' + data.user.id);
+  } catch(e) {
+    clearTimeout(timeout);
+    set(4, 'FAIL', 'fail', 'Exception: ' + e.message);
+  }
+}
+
+async function testSave() {
+  set(5, 'testing...', 'pending', '');
+  const { data: u } = await sb.auth.getUser();
+  if (!u || !u.user) { set(5, 'FAIL', 'fail', 'Not logged in. Run test 4 first.'); return; }
+  const timeout = setTimeout(() => set(5, 'TIMEOUT', 'fail', 'Save timed out after 8s — this is the bug.\nThe insert request never completes.'), 8000);
+  try {
+    const { data, error } = await sb.from('farms').upsert({
+      user_id: u.user.id,
+      farm_name: 'Test Farm',
+      country: 'Algeria'
+    }, { onConflict: 'user_id' }).select();
+    clearTimeout(timeout);
+    if (error) set(5, 'FAIL', 'fail', 'Save error:\n' + JSON.stringify(error, null, 2));
+    else set(5, 'PASS', 'pass', 'SAVED SUCCESSFULLY!\n' + JSON.stringify(data, null, 2));
+  } catch(e) {
+    clearTimeout(timeout);
+    set(5, 'FAIL', 'fail', 'Exception: ' + e.message);
+  }
+}
+</script>
+</body>
+</html>
