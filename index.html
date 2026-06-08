@@ -82,7 +82,9 @@ nav a:hover,nav a.active{color:var(--green);border-bottom-color:var(--green)}
 .hero-bg{position:absolute;inset:0;opacity:0.04;background-image:radial-gradient(circle at 2px 2px,#fff 1px,transparent 0);background-size:28px 28px}
 .hero-orb{position:absolute;right:-80px;top:-80px;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(76,175,80,0.18) 0%,transparent 70%)}
 .hero-orb2{position:absolute;right:200px;bottom:-100px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(27,107,94,0.2) 0%,transparent 70%)}
-.hero-content{position:relative;z-index:1;max-width:640px}
+.hero-content{position:relative;z-index:1;max-width:580px}
+.hero-card{position:absolute;right:80px;top:50%;transform:translateY(-50%);width:260px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.13);border-radius:20px;padding:28px;backdrop-filter:blur(12px);z-index:1}
+@media(max-width:1000px){.hero-card{display:none}}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;color:#81c784;letter-spacing:0.5px;margin-bottom:24px}
 .hero-dot{width:6px;height:6px;background:#4caf50;border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
@@ -274,8 +276,11 @@ nav a:hover,nav a.active{color:var(--green);border-bottom-color:var(--green)}
 <!-- NAV -->
 <nav>
   <div class="logo" onclick="showView('home')">
-    <div class="logo-mark"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L14 6V12L9 16L4 12V6L9 2Z" stroke="#fff" stroke-width="1.5" fill="none"/><circle cx="9" cy="9" r="2" fill="#fff"/></svg></div>
-    <span class="logo-text">Agri<span>Lait</span></span>
+    <div style="display:flex;align-items:center;cursor:pointer">
+      <div style="background:#1a2e1b;border-radius:10px;padding:4px 10px;display:flex;align-items:center;height:38px">
+        <img src="data:image/png;base64,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" alt="Eco Dairy Logo" style="height:30px;width:auto;display:block">
+      </div>
+    </div>
   </div>
   <a onclick="showView('home')" id="nav-home" class="active" data-i18n="platform">Platform</a>
   <a onclick="requireAuth('dashboard')" id="nav-dashboard" data-i18n="dashboard">Dashboard</a>
@@ -310,6 +315,19 @@ nav a:hover,nav a.active{color:var(--green);border-bottom-color:var(--green)}
 <div class="view active" id="view-home">
   <div class="hero">
     <div class="hero-bg"></div><div class="hero-orb"></div><div class="hero-orb2"></div>
+    <!-- Floating score card -->
+    <div class="hero-card">
+      <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.45);letter-spacing:0.8px;margin-bottom:12px">FARM PERFORMANCE SCORE</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:60px;color:#4CAF50;line-height:1" id="heroScore">—</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:20px">/ 100</div>
+      <div style="display:flex;flex-direction:column;gap:10px" id="heroScoreBars">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:rgba(255,255,255,0.55)">Nutrition</span><div style="display:flex;align-items:center;gap:6px"><div style="width:70px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px"><div style="width:0%;height:100%;background:#4CAF50;border-radius:2px" id="hBar1"></div></div><span style="font-size:11px;color:#fff;font-weight:600" id="hVal1">—</span></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:rgba(255,255,255,0.55)">Reproduction</span><div style="display:flex;align-items:center;gap:6px"><div style="width:70px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px"><div style="width:0%;height:100%;background:#D4790A;border-radius:2px" id="hBar2"></div></div><span style="font-size:11px;color:#fff;font-weight:600" id="hVal2">—</span></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:rgba(255,255,255,0.55)">Animal Health</span><div style="display:flex;align-items:center;gap:6px"><div style="width:70px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px"><div style="width:0%;height:100%;background:#4CAF50;border-radius:2px" id="hBar3"></div></div><span style="font-size:11px;color:#fff;font-weight:600" id="hVal3">—</span></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:11px;color:rgba(255,255,255,0.55)">Sustainability</span><div style="display:flex;align-items:center;gap:6px"><div style="width:70px;height:3px;background:rgba(255,255,255,0.1);border-radius:2px"><div style="width:0%;height:100%;background:#1B6B5E;border-radius:2px" id="hBar4"></div></div><span style="font-size:11px;color:#fff;font-weight:600" id="hVal4">—</span></div></div>
+      </div>
+      <div style="margin-top:18px;font-size:11px;color:rgba(255,255,255,0.35);text-align:center" id="heroCardSub">Log in to see your scores</div>
+    </div>
     <div class="hero-content">
       <div class="hero-eyebrow"><span class="hero-dot"></span><span data-i18n="hero_eyebrow">AI-Powered Dairy Consulting</span></div>
       <h1 data-i18n="hero_title">Transform Farm Data<br>into <em>Better Decisions</em></h1>
@@ -658,24 +676,32 @@ async function updateLiveStats() {
 // ── DASHBOARD RENDER ──
 function calcScore(farm) {
   let score = 50;
-  if (farm.daily_yield_liters > 6000) score += 8;
-  if (farm.scc_thousands && farm.scc_thousands < 200) score += 8;
-  if (farm.conception_rate_pct > 60) score += 8; else if (farm.conception_rate_pct < 50) score -= 5;
+  const ypc = farm.lactating_cows && farm.daily_yield_liters ? farm.daily_yield_liters / farm.lactating_cows : 0;
+  if (ypc > 20) score += 10; else if (ypc > 12) score += 6; else if (ypc > 6) score += 2;
+  if (farm.scc_thousands && farm.scc_thousands < 200) score += 8; else if (farm.scc_thousands && farm.scc_thousands < 400) score += 4;
+  if (farm.conception_rate_pct > 60) score += 8; else if (farm.conception_rate_pct > 45) score += 4; else if (farm.conception_rate_pct > 0) score -= 3;
   if (farm.lactating_cows && farm.total_animals && (farm.lactating_cows / farm.total_animals) > 0.8) score += 6;
-  if (farm.feed_cost_per_liter && farm.feed_cost_per_liter < 15) score += 5;
+  else if (farm.lactating_cows && farm.total_animals && (farm.lactating_cows / farm.total_animals) > 0.65) score += 3;
+  if (farm.feed_cost_per_liter && farm.feed_cost_per_liter > 0) score += 5;
   return Math.min(100, Math.max(0, score));
+}
+
+function calcScores(f) {
+  const ypc = f.lactating_cows && f.daily_yield_liters ? f.daily_yield_liters / f.lactating_cows : 0;
+  const nutr = f.feed_cost_per_liter > 0 ? Math.min(100, Math.max(30, 85 - (f.feed_cost_per_liter / 500) * 40)) : 50;
+  const repro = f.conception_rate_pct > 0 ? Math.min(100, Math.max(0, (f.conception_rate_pct / 65) * 100)) : 50;
+  const health = f.scc_thousands > 0 ? Math.min(100, Math.max(20, 100 - (f.scc_thousands / 600) * 80)) : 50;
+  const milk = ypc > 0 ? Math.min(100, Math.max(10, (ypc / 20) * 100)) : 50;
+  const sust = Math.round(55 + (health > 70 ? 12 : health > 50 ? 6 : 0) + (milk > 50 ? 8 : 0));
+  const econ = f.feed_cost_per_liter > 0 ? Math.min(100, Math.max(20, 90 - (f.feed_cost_per_liter / 400) * 60)) : 50;
+  return { nutr: Math.round(nutr), repro: Math.round(repro), health: Math.round(health), milk: Math.round(milk), sust: Math.min(100, sust), econ: Math.round(econ) };
 }
 
 function updateDashboard() {
   const f = farmData;
   if (!f) return;
   const overall = calcScore(f);
-  const nutr = f.feed_cost_per_liter ? Math.min(100, Math.max(0, 100 - (f.feed_cost_per_liter / 20) * 40)) : 50;
-  const repro = f.conception_rate_pct ? Math.min(100, (f.conception_rate_pct / 80) * 100) : 50;
-  const health = f.scc_thousands ? Math.min(100, Math.max(0, ((400 - f.scc_thousands) / 400) * 100)) : 50;
-  const milk = f.daily_yield_liters && f.lactating_cows ? Math.min(100, ((f.daily_yield_liters / f.lactating_cows) / 35) * 100) : 50;
-  const sust = 65 + (health > 70 ? 10 : 0) + (nutr > 70 ? 5 : 0);
-  const econ = f.feed_cost_per_liter ? Math.min(100, Math.max(0, 100 - (f.feed_cost_per_liter / 25) * 60)) : 50;
+  const {nutr, repro, health, milk, sust, econ} = calcScores(f);
 
   const yieldPerCow = f.lactating_cows && f.daily_yield_liters ? (f.daily_yield_liters / f.lactating_cows).toFixed(1) : '—';
   const herdPct = f.lactating_cows && f.total_animals ? ((f.lactating_cows / f.total_animals) * 100).toFixed(1) : '—';
@@ -1005,7 +1031,302 @@ function initSust(){
 }
 
 // ── TABS & STEPS ──
-document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function(){ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); this.classList.add('active') }));
+// ── TAB SWITCHING WITH CONTENT ──
+const tabNames = ['overview','herd','milk','feeding','reproduction','health','financials','reports'];
+document.querySelectorAll('.tab').forEach((tab, i) => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    renderDashTab(tabNames[i]);
+  });
+});
+
+function renderDashTab(tab) {
+  const f = farmData;
+  if (!f) { document.getElementById('dashContent').innerHTML = noDataHTML(); return; }
+  if (tab === 'overview') { updateDashboard(); return; }
+  const currency = f.country === 'Algeria' ? 'DZD' : f.country === 'Morocco' ? 'MAD' : 'Local';
+  const ypc = f.lactating_cows && f.daily_yield_liters ? (f.daily_yield_liters / f.lactating_cows).toFixed(1) : '—';
+  const herdPct = f.lactating_cows && f.total_animals ? ((f.lactating_cows / f.total_animals) * 100).toFixed(0) : '—';
+
+  const tabContent = {
+    herd: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Herd Management</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Overview of your herd composition and structure</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('🐄','Total Animals', f.total_animals || '—', 'head', 'trend-neutral', 'All livestock')}
+          ${kpiCard('🥛','Lactating Cows', f.lactating_cows || '—', 'cows', herdPct > 80 ? 'trend-up' : 'trend-neutral', herdPct !== '—' ? herdPct + '% of herd in milk' : '—')}
+          ${kpiCard('🌿','Dry Cows', f.total_animals && f.lactating_cows ? f.total_animals - f.lactating_cows : '—', 'cows', 'trend-neutral', 'Not currently milking')}
+          ${kpiCard('📊','Herd Utilization', herdPct, '%', herdPct > 80 ? 'trend-up' : 'trend-neutral', herdPct > 80 ? '✓ Good (target >80%)' : 'Target: >80%')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Herd Composition</div>
+            <div class="chart-sub">Breakdown of your ${f.total_animals || '—'} animals</div>
+            ${f.total_animals && f.lactating_cows ? `
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+              ${herdBar('Lactating Cows', f.lactating_cows, f.total_animals, '#2d6a2e')}
+              ${herdBar('Dry Cows', Math.max(0, f.total_animals - f.lactating_cows), f.total_animals, '#81c784')}
+            </div>` : '<div style="color:var(--ink3);font-size:13px;padding:20px 0">Enter herd data in Farm Registration to see breakdown</div>'}
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Farm Details</div>
+            <div class="chart-sub">Key farm parameters</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+              ${infoRow('Production Type', f.production_type || '—')}
+              ${infoRow('Farm Size', f.farm_area_ha ? f.farm_area_ha + ' ha' : '—')}
+              ${infoRow('Years Operating', f.years_operation ? f.years_operation + ' years' : '—')}
+              ${infoRow('Ownership', f.ownership_status || '—')}
+              ${infoRow('Region', f.region || f.country || '—')}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    milk: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Milk Production</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Production performance and milk quality indicators</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('🥛','Daily Production', f.daily_yield_liters || '—', 'L', 'trend-neutral', 'Total liters per day')}
+          ${kpiCard('🐄','Yield per Cow', ypc, 'L/day', ypc > 15 ? 'trend-up' : ypc > 8 ? 'trend-neutral' : 'trend-down', ypc > 15 ? '↑ Good performance' : ypc > 8 ? '→ Average' : '↓ Below average')}
+          ${kpiCard('🔬','SCC', f.scc_thousands || '—', 'k cells/mL', f.scc_thousands < 200 ? 'trend-up' : 'trend-down', f.scc_thousands < 200 ? '✓ Premium quality' : f.scc_thousands < 400 ? '⚠ Acceptable' : '⛔ Poor quality')}
+          ${kpiCard('💰','Milk Price', f.milk_price_per_liter || '—', currency + '/L', 'trend-neutral', 'Selling price per liter')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Production Summary</div>
+            <div class="chart-sub">Key performance vs targets</div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:12px">
+              ${progressBar('Yield / cow vs target (20 L)', ypc > 0 ? Math.min(100,(ypc/20)*100) : 0, ypc + ' L / 20 L target', '#2d6a2e')}
+              ${progressBar('SCC quality vs threshold (200k)', f.scc_thousands > 0 ? Math.min(100,((400-f.scc_thousands)/400)*100) : 0, f.scc_thousands + 'k / 200k target', f.scc_thousands < 200 ? '#2d6a2e' : '#d4790a')}
+              ${progressBar('Herd in milk vs target (80%)', herdPct > 0 ? Math.min(100, herdPct) : 0, herdPct + '% / 80% target', herdPct > 80 ? '#2d6a2e' : '#d4790a')}
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Quality Assessment</div>
+            <div class="chart-sub">Milk quality grade based on SCC</div>
+            <div style="text-align:center;padding:20px 0">
+              <div style="font-family:'DM Serif Display',serif;font-size:48px;color:${f.scc_thousands < 200 ? 'var(--green)' : f.scc_thousands < 400 ? 'var(--amber)' : 'var(--red)'}">
+                ${f.scc_thousands < 200 ? 'A+' : f.scc_thousands < 300 ? 'A' : f.scc_thousands < 400 ? 'B' : 'C'}
+              </div>
+              <div style="font-size:13px;color:var(--ink3);margin-top:8px">
+                ${f.scc_thousands < 200 ? 'Premium quality — eligible for quality bonuses' : f.scc_thousands < 400 ? 'Standard quality — improvement recommended' : 'Below standard — mastitis risk detected'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    feeding: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Feeding Management</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Feed costs, efficiency and nutrition overview</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('💰','Feed Cost / L', f.feed_cost_per_liter || '—', currency, 'trend-neutral', 'Cost per liter of milk')}
+          ${kpiCard('📦','Daily Feed Cost', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters).toLocaleString() : '—', currency, 'trend-neutral', 'Estimated daily feed spend')}
+          ${kpiCard('📈','Monthly Feed Cost', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters * 30).toLocaleString() : '—', currency, 'trend-neutral', 'Estimated monthly spend')}
+          ${kpiCard('⚖️','Feed Efficiency', ypc > 0 && f.feed_cost_per_liter > 0 ? (ypc / f.feed_cost_per_liter * 100).toFixed(1) : '—', 'L/unit cost', 'trend-neutral', 'Liters per unit feed cost')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Cost Analysis</div>
+            <div class="chart-sub">Feed cost breakdown and benchmarks</div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:12px">
+              ${infoRow('Feed cost per liter', f.feed_cost_per_liter ? f.feed_cost_per_liter + ' ' + currency : 'Not entered')}
+              ${infoRow('Daily production', f.daily_yield_liters ? f.daily_yield_liters + ' L' : '—')}
+              ${infoRow('Daily feed cost estimate', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters).toLocaleString() + ' ' + currency : '—')}
+              ${infoRow('Annual feed cost estimate', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters * 365).toLocaleString() + ' ' + currency : '—')}
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Feeding Recommendations</div>
+            <div class="chart-sub">Based on your farm data</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              ${ypc < 15 ? recBox('🌾', 'Review ration energy density', 'Yield per cow suggests the TMR may be low in energy. Consider increasing bypass fat or starch content.', 'high') : recBox('✅', 'Yield is adequate', 'Continue current feeding program and monitor trends monthly.', 'low')}
+              ${f.feed_cost_per_liter > 200 ? recBox('💰', 'High feed cost detected', 'Feed cost per liter appears high. Consider bulk purchasing or increasing homegrown forage proportion.', 'medium') : ''}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    reproduction: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Reproduction Management</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Fertility performance and breeding efficiency</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('📋','Conception Rate', f.conception_rate_pct || '—', '%', f.conception_rate_pct >= 65 ? 'trend-up' : f.conception_rate_pct >= 45 ? 'trend-neutral' : 'trend-down', f.conception_rate_pct >= 65 ? '✓ On target (≥65%)' : f.conception_rate_pct >= 45 ? '→ Below target (65%)' : '↓ Critical — review protocol')}
+          ${kpiCard('🔄','Target Rate', '65', '%', 'trend-neutral', 'Industry benchmark')}
+          ${kpiCard('📉','Gap to Target', f.conception_rate_pct > 0 ? Math.max(0, 65 - f.conception_rate_pct) : '—', 'pts', f.conception_rate_pct >= 65 ? 'trend-up' : 'trend-down', f.conception_rate_pct >= 65 ? '✓ Target achieved' : 'Points below target')}
+          ${kpiCard('🐄','Breeding Cows', f.lactating_cows || '—', 'eligible', 'trend-neutral', 'Lactating cows eligible')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Fertility Score</div>
+            <div class="chart-sub">Conception rate vs regional benchmarks</div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:12px">
+              ${progressBar('Your conception rate', f.conception_rate_pct || 0, (f.conception_rate_pct || 0) + '%', f.conception_rate_pct >= 65 ? '#2d6a2e' : '#d4790a')}
+              ${progressBar('Regional average', 62, '62%', '#81c784')}
+              ${progressBar('Target', 65, '65%', '#1b6b5e')}
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Reproduction Recommendations</div>
+            <div class="chart-sub">Targeted interventions</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              ${f.conception_rate_pct < 50 ? recBox('🔴', 'Critical: Low conception rate', 'Shift AI timing to early morning (05:00-07:00), check bull fertility, increase water access points, and consider rumen-protected fat supplement at 200g/cow/day.', 'high') : f.conception_rate_pct < 65 ? recBox('🟡', 'Below target: Improve conception', 'Consider reviewing heat detection accuracy, AI timing protocol, and energy balance around breeding.', 'medium') : recBox('✅', 'Good fertility performance', 'Conception rate is at or above target. Maintain current protocol and monitor monthly.', 'low')}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    health: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Animal Health</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Udder health, disease prevention and welfare indicators</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('🔬','SCC Level', f.scc_thousands || '—', 'k cells/mL', f.scc_thousands < 200 ? 'trend-up' : 'trend-down', f.scc_thousands < 200 ? '✓ Excellent udder health' : '⚠ Review milking hygiene')}
+          ${kpiCard('🎯','Target SCC', '<200', 'k cells/mL', 'trend-neutral', 'Premium milk threshold')}
+          ${kpiCard('🏥','Health Risk', f.scc_thousands > 400 ? 'HIGH' : f.scc_thousands > 200 ? 'MEDIUM' : 'LOW', '', f.scc_thousands > 400 ? 'trend-down' : f.scc_thousands > 200 ? 'trend-neutral' : 'trend-up', 'Based on SCC level')}
+          ${kpiCard('💊','Mastitis Risk', f.scc_thousands > 400 ? 'Elevated' : f.scc_thousands > 200 ? 'Moderate' : 'Low', '', f.scc_thousands > 400 ? 'trend-down' : f.scc_thousands > 200 ? 'trend-neutral' : 'trend-up', 'SCC-based assessment')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Udder Health Status</div>
+            <div class="chart-sub">SCC analysis and milk quality grade</div>
+            <div style="text-align:center;padding:16px 0">
+              <div style="font-family:'DM Serif Display',serif;font-size:52px;color:${f.scc_thousands < 200 ? 'var(--green)' : f.scc_thousands < 400 ? 'var(--amber)' : 'var(--red)'}">
+                ${f.scc_thousands || '—'}k
+              </div>
+              <div style="font-size:12px;color:var(--ink3);margin-top:4px">cells/mL</div>
+              <div style="margin-top:16px">
+                ${progressBar('SCC vs premium threshold (200k)', f.scc_thousands > 0 ? Math.min(100, (f.scc_thousands/600)*100) : 0, '', f.scc_thousands < 200 ? '#2d6a2e' : '#c0392b')}
+              </div>
+              <div style="font-size:12px;margin-top:12px;padding:8px 12px;background:${f.scc_thousands < 200 ? 'var(--green5)' : 'var(--earth2)'};border-radius:6px;color:var(--ink2)">
+                ${f.scc_thousands < 200 ? '✓ Eligible for premium milk pricing' : f.scc_thousands < 400 ? '⚠ Not eligible for premium — investigate subclinical mastitis' : '⛔ High SCC — immediate veterinary review recommended'}
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Health Action Plan</div>
+            <div class="chart-sub">Recommended interventions</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              ${f.scc_thousands > 400 ? recBox('🔴', 'Urgent: Mastitis risk', 'SCC above 400k indicates active mastitis. Identify and treat affected cows immediately. Review milking machine settings and post-milking teat dipping.', 'high') : f.scc_thousands > 200 ? recBox('🟡', 'Subclinical mastitis likely', 'SCC between 200-400k suggests subclinical mastitis in some cows. Consider individual cow SCC testing and targeted treatment.', 'medium') : recBox('✅', 'Excellent udder health', 'SCC below 200k — continue current milking hygiene protocol and teat dipping program.', 'low')}
+              ${recBox('💉', 'Vaccination reminder', 'Ensure all cows are up to date on FMD, BVD, and leptospirosis vaccinations. Record dates in farm journal.', 'low')}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    financials: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Financial Performance</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Revenue, costs and profitability analysis</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('💵','Daily Revenue Est.', f.daily_yield_liters && f.milk_price_per_liter ? (f.daily_yield_liters * f.milk_price_per_liter).toLocaleString() : '—', currency, 'trend-neutral', 'Based on yield × price')}
+          ${kpiCard('📦','Daily Feed Cost', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters).toLocaleString() : '—', currency, 'trend-neutral', 'Feed cost estimate')}
+          ${kpiCard('📈','Monthly Revenue Est.', f.daily_yield_liters && f.milk_price_per_liter ? (f.daily_yield_liters * f.milk_price_per_liter * 30).toLocaleString() : '—', currency, 'trend-neutral', '30-day estimate')}
+          ${kpiCard('⚖️','Cost per Liter', f.feed_cost_per_liter || '—', currency, 'trend-neutral', 'Feed cost only')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Financial Summary</div>
+            <div class="chart-sub">Estimated based on available data</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+              ${infoRow('Daily production', f.daily_yield_liters ? f.daily_yield_liters + ' L' : 'Not entered')}
+              ${infoRow('Milk price / L', f.milk_price_per_liter ? f.milk_price_per_liter + ' ' + currency : 'Not entered')}
+              ${infoRow('Daily revenue (est.)', f.daily_yield_liters && f.milk_price_per_liter ? (f.daily_yield_liters * f.milk_price_per_liter).toLocaleString() + ' ' + currency : '—')}
+              ${infoRow('Monthly revenue (est.)', f.daily_yield_liters && f.milk_price_per_liter ? (f.daily_yield_liters * f.milk_price_per_liter * 30).toLocaleString() + ' ' + currency : '—')}
+              ${infoRow('Feed cost / L', f.feed_cost_per_liter ? f.feed_cost_per_liter + ' ' + currency : 'Not entered')}
+              ${infoRow('Daily feed cost (est.)', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters).toLocaleString() + ' ' + currency : '—')}
+            </div>
+            <div style="margin-top:16px;padding:12px;background:var(--green5);border:1px solid var(--green4);border-radius:8px;font-size:12px;color:var(--ink2)">
+              💡 Add your milk selling price in the farm profile to enable full financial analysis.
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Financial Recommendations</div>
+            <div class="chart-sub">Opportunities to improve profitability</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              ${f.scc_thousands < 200 ? recBox('💰', 'Premium milk pricing opportunity', 'Your SCC qualifies you for premium milk pricing. Negotiate with your dairy processor for a quality bonus.', 'low') : recBox('📉', 'SCC reducing your milk value', 'Improving SCC below 200k could qualify you for premium pricing bonuses on every liter sold.', 'medium')}
+              ${recBox('📊', 'Track all costs for better analysis', 'Enter your milk selling price and complete the financial section to get full profitability analysis.', 'low')}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    reports: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Farm Reports</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Automated farm assessment and audit reports</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+          <div class="chart-card" style="cursor:pointer" onclick="window.print()">
+            <div style="font-size:24px;margin-bottom:12px">📋</div>
+            <div class="chart-title">Farm Performance Report</div>
+            <div style="font-size:12px;color:var(--ink3);margin:8px 0 16px">Full overview of all performance scores, KPIs, and recommendations</div>
+            <div style="padding:8px 16px;background:var(--green);border-radius:6px;font-size:13px;font-weight:600;color:#fff;text-align:center">Print / Save PDF</div>
+          </div>
+          <div class="chart-card" style="opacity:0.6">
+            <div style="font-size:24px;margin-bottom:12px">🌿</div>
+            <div class="chart-title">Sustainability Report</div>
+            <div style="font-size:12px;color:var(--ink3);margin:8px 0 16px">Carbon footprint, water usage, and LCA analysis report</div>
+            <div style="padding:8px 16px;background:var(--surface3);border-radius:6px;font-size:13px;font-weight:500;color:var(--ink3);text-align:center">Coming Soon</div>
+          </div>
+          <div class="chart-card" style="opacity:0.6">
+            <div style="font-size:24px;margin-bottom:12px">💰</div>
+            <div class="chart-title">Financial Analysis Report</div>
+            <div style="font-size:12px;color:var(--ink3);margin:8px 0 16px">Revenue projections, cost breakdown and ROI analysis</div>
+            <div style="padding:8px 16px;background:var(--surface3);border-radius:6px;font-size:13px;font-weight:500;color:var(--ink3);text-align:center">Coming Soon</div>
+          </div>
+        </div>
+        <div style="margin-top:20px" class="chart-card">
+          <div class="chart-title" style="margin-bottom:16px">📊 Quick Farm Summary — ${f.farm_name}</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;font-size:13px">
+            <div>
+              <div style="font-weight:600;color:var(--ink2);margin-bottom:8px">Production</div>
+              ${infoRow('Daily yield', f.daily_yield_liters ? f.daily_yield_liters + ' L' : '—')}
+              ${infoRow('Yield / cow', ypc + ' L/day')}
+              ${infoRow('Lactating cows', f.lactating_cows || '—')}
+            </div>
+            <div>
+              <div style="font-weight:600;color:var(--ink2);margin-bottom:8px">Quality & Health</div>
+              ${infoRow('SCC', f.scc_thousands ? f.scc_thousands + 'k' : '—')}
+              ${infoRow('Conception rate', f.conception_rate_pct ? f.conception_rate_pct + '%' : '—')}
+              ${infoRow('Herd utilization', herdPct + '%')}
+            </div>
+            <div>
+              <div style="font-weight:600;color:var(--ink2);margin-bottom:8px">Economics</div>
+              ${infoRow('Feed cost/L', f.feed_cost_per_liter || '—')}
+              ${infoRow('Farm size', f.farm_area_ha ? f.farm_area_ha + ' ha' : '—')}
+              ${infoRow('Location', f.region || f.country || '—')}
+            </div>
+          </div>
+        </div>
+      </div>`
+  };
+
+  document.getElementById('dashContent').innerHTML = tabContent[tab] || '';
+}
+
+function kpiCard(icon, label, value, unit, trendClass, trendText) {
+  return `<div class="kpi-card"><div class="kpi-label">${icon} ${label}</div><div class="kpi-num">${value}<span class="kpi-unit">${unit}</span></div><div class="kpi-trend ${trendClass}">${trendText}</div></div>`;
+}
+function infoRow(label, value) {
+  return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--ink3)">${label}</span><span style="font-weight:600;color:var(--ink)">${value}</span></div>`;
+}
+function herdBar(label, value, total, color) {
+  const pct = total > 0 ? Math.round((value/total)*100) : 0;
+  return `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--ink2)">${label}</span><span style="font-weight:600;color:var(--ink)">${value} (${pct}%)</span></div><div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${color};border-radius:4px;transition:width .6s"></div></div></div>`;
+}
+function progressBar(label, pct, valueText, color) {
+  return `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--ink2)">${label}</span><span style="font-weight:600;color:var(--ink)">${valueText}</span></div><div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden"><div style="width:${Math.min(100,pct)}%;height:100%;background:${color};border-radius:4px;transition:width .6s"></div></div></div>`;
+}
+function recBox(icon, title, body, priority) {
+  const colors = { high: {bg:'#ffebee',border:'rgba(192,57,43,0.2)',tc:'#c62828'}, medium: {bg:'#fff8e1',border:'rgba(212,121,10,0.2)',tc:'#e65100'}, low: {bg:'var(--green5)',border:'rgba(45,106,46,0.2)',tc:'var(--green)'} };
+  const c = colors[priority] || colors.low;
+  return `<div style="background:${c.bg};border:1px solid ${c.border};border-radius:8px;padding:12px"><div style="font-size:12px;font-weight:600;color:${c.tc};margin-bottom:4px">${icon} ${title}</div><div style="font-size:11px;color:var(--ink2);line-height:1.5">${body}</div></div>`;
+}
 document.querySelectorAll('.step-nav-item').forEach((item,i) => item.addEventListener('click', function(){ document.querySelectorAll('.step-nav-item').forEach((s,j)=>{ s.classList.remove('active'); s.querySelector('.step-num-sm').className='step-num-sm '+(j<i?'s-complete':j===i?'s-active':'s-pending') }); this.classList.add('active') }));
 
 // ── INIT ──
