@@ -642,12 +642,26 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
 async function loadFarmData() {
   if (!currentUser) return;
-  const { data, error } = await sb.from('farms').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1);
-  if (!error && data && data.length > 0) {
-    farmData = data[0];
-    updateDashboard();
-    updateBenchmark();
-    updateSustainability();
+  try {
+    const { data, error } = await sb.from('farms').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(1);
+    if (error) { console.error('Load farm error:', error.message); return; }
+    if (data && data.length > 0) {
+      farmData = data[0];
+      // Pre-fill form with existing data
+      const f = farmData;
+      const setVal = (id, val) => { const el = document.getElementById(id); if(el && val != null) el.value = val; };
+      setVal('f_name', f.farm_name); setVal('f_owner', f.owner_name);
+      setVal('f_region', f.region); setVal('f_area', f.farm_area_ha);
+      setVal('f_years', f.years_operation); setVal('f_animals', f.total_animals);
+      setVal('f_lactating', f.lactating_cows); setVal('f_yield', f.daily_yield_liters);
+      setVal('f_conception', f.conception_rate_pct); setVal('f_scc', f.scc_thousands);
+      setVal('f_feedcost', f.feed_cost_per_liter); setVal('f_desc', f.description);
+      if (f.country) { const el = document.getElementById('f_country'); if(el) el.value = f.country; }
+      if (f.production_type) { const el = document.getElementById('f_production'); if(el) el.value = f.production_type; }
+      if (f.ownership_status) { const el = document.getElementById('f_ownership'); if(el) el.value = f.ownership_status; }
+    }
+  } catch(err) {
+    console.error('loadFarmData error:', err);
   }
 }
 
@@ -881,18 +895,27 @@ function noDataHTML() {
 // ── SAVE FARM ──
 async function saveFarmProfile() {
   const msg = document.getElementById('farmMsg');
-  if (!currentUser) { showMsg(msg, 'Please log in first to save your data.', 'error'); openModal(); return; }
+  const btn = document.querySelector('.form-footer .btn-green');
+
+  // Auth check
+  if (!currentUser) {
+    showMsg(msg, 'Please log in first to save your data.', 'error');
+    openModal();
+    return;
+  }
+
+  // Collect form data
   const data = {
     user_id: currentUser.id,
-    farm_name: document.getElementById('f_name').value,
-    owner_name: document.getElementById('f_owner').value,
+    farm_name: (document.getElementById('f_name').value || '').trim(),
+    owner_name: (document.getElementById('f_owner').value || '').trim(),
     country: document.getElementById('f_country').value,
-    region: document.getElementById('f_region').value,
+    region: (document.getElementById('f_region').value || '').trim(),
     farm_area_ha: parseFloat(document.getElementById('f_area').value) || null,
     years_operation: parseInt(document.getElementById('f_years').value) || null,
     production_type: document.getElementById('f_production').value,
     ownership_status: document.getElementById('f_ownership').value,
-    description: document.getElementById('f_desc').value,
+    description: (document.getElementById('f_desc').value || '').trim(),
     total_animals: parseInt(document.getElementById('f_animals').value) || null,
     lactating_cows: parseInt(document.getElementById('f_lactating').value) || null,
     daily_yield_liters: parseFloat(document.getElementById('f_yield').value) || null,
@@ -901,52 +924,90 @@ async function saveFarmProfile() {
     feed_cost_per_liter: parseFloat(document.getElementById('f_feedcost').value) || null,
     updated_at: new Date().toISOString()
   };
-  if (!data.farm_name) { showMsg(msg, 'Farm name is required.', 'error'); return; }
-  const btn = document.querySelector('.form-footer .btn-green');
-  btn.disabled = true; btn.textContent = 'Saving...';
-  const existing = await sb.from('farms').select('id').eq('user_id', currentUser.id).limit(1);
-  let error;
-  if (existing.data && existing.data.length > 0) {
-    ({ error } = await sb.from('farms').update(data).eq('id', existing.data[0].id));
-  } else {
-    ({ error } = await sb.from('farms').insert([data]));
+
+  // Validation
+  if (!data.farm_name) {
+    showMsg(msg, 'Farm name is required.', 'error');
+    return;
   }
-  btn.disabled = false; btn.textContent = t('save_profile');
-  if (error) showMsg(msg, 'Error: ' + error.message, 'error');
-  else {
-    showMsg(msg, '✓ Farm saved successfully!', 'success');
+
+  // Loading state
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  try {
+    // Check if farm already exists for this user
+    const { data: existing, error: fetchErr } = await sb
+      .from('farms')
+      .select('id')
+      .eq('user_id', currentUser.id)
+      .limit(1);
+
+    if (fetchErr) throw new Error(fetchErr.message);
+
+    let saveError;
+    if (existing && existing.length > 0) {
+      // Update existing farm
+      const { error } = await sb.from('farms').update(data).eq('id', existing[0].id);
+      saveError = error;
+    } else {
+      // Insert new farm
+      const { error } = await sb.from('farms').insert([data]);
+      saveError = error;
+    }
+
+    if (saveError) throw new Error(saveError.message);
+
+    // Success
+    showMsg(msg, '✓ Farm profile saved successfully!', 'success');
     showToast('Farm data saved! 🌾', 'green');
     await loadFarmData();
     await updateLiveStats();
+
+  } catch (err) {
+    console.error('Save error:', err);
+    showMsg(msg, 'Error saving farm: ' + err.message, 'error');
+  } finally {
+    // Always re-enable button
+    if (btn) { btn.disabled = false; btn.textContent = 'Save Farm Profile →'; }
   }
 }
 
 // ── AUTH ──
 async function handleLogin() {
-  const email = document.getElementById('loginEmail').value;
+  const email = (document.getElementById('loginEmail').value || '').trim();
   const pass = document.getElementById('loginPassword').value;
   const msg = document.getElementById('loginMsg');
-  if (!email || !pass) { showMsg(msg, 'Please fill in all fields.', 'error'); return; }
   const btn = document.querySelector('#loginForm .auth-btn');
-  btn.disabled = true; btn.textContent = 'Logging in...';
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
-  btn.disabled = false; btn.textContent = t('login');
-  if (error) showMsg(msg, error.message, 'error');
+  if (!email || !pass) { showMsg(msg, 'Please fill in all fields.', 'error'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'Logging in...'; }
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    if (error) showMsg(msg, error.message, 'error');
+  } catch(err) {
+    showMsg(msg, 'Connection error. Please try again.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Log In'; }
+  }
 }
 
 async function handleRegister() {
-  const name = document.getElementById('regName').value;
-  const email = document.getElementById('regEmail').value;
+  const name = (document.getElementById('regName').value || '').trim();
+  const email = (document.getElementById('regEmail').value || '').trim();
   const pass = document.getElementById('regPassword').value;
   const msg = document.getElementById('registerMsg');
+  const btn = document.querySelector('#registerForm .auth-btn');
   if (!name || !email || !pass) { showMsg(msg, 'Please fill in all fields.', 'error'); return; }
   if (pass.length < 6) { showMsg(msg, 'Password must be at least 6 characters.', 'error'); return; }
-  const btn = document.querySelector('#registerForm .auth-btn');
-  btn.disabled = true; btn.textContent = 'Creating account...';
-  const { error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
-  btn.disabled = false; btn.textContent = t('create_account');
-  if (error) showMsg(msg, error.message, 'error');
-  else showMsg(msg, '✓ Account created! Check your email to confirm, then log in.', 'success');
+  if (btn) { btn.disabled = true; btn.textContent = 'Creating account...'; }
+  try {
+    const { error } = await sb.auth.signUp({ email, password: pass, options: { data: { full_name: name } } });
+    if (error) showMsg(msg, error.message, 'error');
+    else showMsg(msg, '✓ Account created! Check your email to confirm, then log in.', 'success');
+  } catch(err) {
+    showMsg(msg, 'Connection error. Please try again.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Create Account'; }
+  }
 }
 
 async function handleLogout() { await sb.auth.signOut(); }
