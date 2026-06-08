@@ -82,7 +82,8 @@ nav a:hover,nav a.active{color:var(--green);border-bottom-color:var(--green)}
 .hero-bg{position:absolute;inset:0;opacity:0.04;background-image:radial-gradient(circle at 2px 2px,#fff 1px,transparent 0);background-size:28px 28px}
 .hero-orb{position:absolute;right:-80px;top:-80px;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(76,175,80,0.18) 0%,transparent 70%)}
 .hero-orb2{position:absolute;right:200px;bottom:-100px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(27,107,94,0.2) 0%,transparent 70%)}
-.hero-content{position:relative;z-index:1;max-width:640px}
+.hero-content{position:relative;z-index:1;max-width:580px}
+
 .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(76,175,80,0.15);border:1px solid rgba(76,175,80,0.3);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;color:#81c784;letter-spacing:0.5px;margin-bottom:24px}
 .hero-dot{width:6px;height:6px;background:#4caf50;border-radius:50%;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
@@ -658,24 +659,32 @@ async function updateLiveStats() {
 // ── DASHBOARD RENDER ──
 function calcScore(farm) {
   let score = 50;
-  if (farm.daily_yield_liters > 6000) score += 8;
-  if (farm.scc_thousands && farm.scc_thousands < 200) score += 8;
-  if (farm.conception_rate_pct > 60) score += 8; else if (farm.conception_rate_pct < 50) score -= 5;
+  const ypc = farm.lactating_cows && farm.daily_yield_liters ? farm.daily_yield_liters / farm.lactating_cows : 0;
+  if (ypc > 20) score += 10; else if (ypc > 12) score += 6; else if (ypc > 6) score += 2;
+  if (farm.scc_thousands && farm.scc_thousands < 200) score += 8; else if (farm.scc_thousands && farm.scc_thousands < 400) score += 4;
+  if (farm.conception_rate_pct > 60) score += 8; else if (farm.conception_rate_pct > 45) score += 4; else if (farm.conception_rate_pct > 0) score -= 3;
   if (farm.lactating_cows && farm.total_animals && (farm.lactating_cows / farm.total_animals) > 0.8) score += 6;
-  if (farm.feed_cost_per_liter && farm.feed_cost_per_liter < 15) score += 5;
+  else if (farm.lactating_cows && farm.total_animals && (farm.lactating_cows / farm.total_animals) > 0.65) score += 3;
+  if (farm.feed_cost_per_liter && farm.feed_cost_per_liter > 0) score += 5;
   return Math.min(100, Math.max(0, score));
+}
+
+function calcScores(f) {
+  const ypc = f.lactating_cows && f.daily_yield_liters ? f.daily_yield_liters / f.lactating_cows : 0;
+  const nutr = f.feed_cost_per_liter > 0 ? Math.min(100, Math.max(30, 85 - (f.feed_cost_per_liter / 500) * 40)) : 50;
+  const repro = f.conception_rate_pct > 0 ? Math.min(100, Math.max(0, (f.conception_rate_pct / 65) * 100)) : 50;
+  const health = f.scc_thousands > 0 ? Math.min(100, Math.max(20, 100 - (f.scc_thousands / 600) * 80)) : 50;
+  const milk = ypc > 0 ? Math.min(100, Math.max(10, (ypc / 20) * 100)) : 50;
+  const sust = Math.round(55 + (health > 70 ? 12 : health > 50 ? 6 : 0) + (milk > 50 ? 8 : 0));
+  const econ = f.feed_cost_per_liter > 0 ? Math.min(100, Math.max(20, 90 - (f.feed_cost_per_liter / 400) * 60)) : 50;
+  return { nutr: Math.round(nutr), repro: Math.round(repro), health: Math.round(health), milk: Math.round(milk), sust: Math.min(100, sust), econ: Math.round(econ) };
 }
 
 function updateDashboard() {
   const f = farmData;
   if (!f) return;
   const overall = calcScore(f);
-  const nutr = f.feed_cost_per_liter ? Math.min(100, Math.max(0, 100 - (f.feed_cost_per_liter / 20) * 40)) : 50;
-  const repro = f.conception_rate_pct ? Math.min(100, (f.conception_rate_pct / 80) * 100) : 50;
-  const health = f.scc_thousands ? Math.min(100, Math.max(0, ((400 - f.scc_thousands) / 400) * 100)) : 50;
-  const milk = f.daily_yield_liters && f.lactating_cows ? Math.min(100, ((f.daily_yield_liters / f.lactating_cows) / 35) * 100) : 50;
-  const sust = 65 + (health > 70 ? 10 : 0) + (nutr > 70 ? 5 : 0);
-  const econ = f.feed_cost_per_liter ? Math.min(100, Math.max(0, 100 - (f.feed_cost_per_liter / 25) * 60)) : 50;
+  const {nutr, repro, health, milk, sust, econ} = calcScores(f);
 
   const yieldPerCow = f.lactating_cows && f.daily_yield_liters ? (f.daily_yield_liters / f.lactating_cows).toFixed(1) : '—';
   const herdPct = f.lactating_cows && f.total_animals ? ((f.lactating_cows / f.total_animals) * 100).toFixed(1) : '—';
@@ -1005,7 +1014,302 @@ function initSust(){
 }
 
 // ── TABS & STEPS ──
-document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', function(){ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); this.classList.add('active') }));
+// ── TAB SWITCHING WITH CONTENT ──
+const tabNames = ['overview','herd','milk','feeding','reproduction','health','financials','reports'];
+document.querySelectorAll('.tab').forEach((tab, i) => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    renderDashTab(tabNames[i]);
+  });
+});
+
+function renderDashTab(tab) {
+  const f = farmData;
+  if (!f) { document.getElementById('dashContent').innerHTML = noDataHTML(); return; }
+  if (tab === 'overview') { updateDashboard(); return; }
+  const currency = f.country === 'Algeria' ? 'DZD' : f.country === 'Morocco' ? 'MAD' : 'Local';
+  const ypc = f.lactating_cows && f.daily_yield_liters ? (f.daily_yield_liters / f.lactating_cows).toFixed(1) : '—';
+  const herdPct = f.lactating_cows && f.total_animals ? ((f.lactating_cows / f.total_animals) * 100).toFixed(0) : '—';
+
+  const tabContent = {
+    herd: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Herd Management</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Overview of your herd composition and structure</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('🐄','Total Animals', f.total_animals || '—', 'head', 'trend-neutral', 'All livestock')}
+          ${kpiCard('🥛','Lactating Cows', f.lactating_cows || '—', 'cows', herdPct > 80 ? 'trend-up' : 'trend-neutral', herdPct !== '—' ? herdPct + '% of herd in milk' : '—')}
+          ${kpiCard('🌿','Dry Cows', f.total_animals && f.lactating_cows ? f.total_animals - f.lactating_cows : '—', 'cows', 'trend-neutral', 'Not currently milking')}
+          ${kpiCard('📊','Herd Utilization', herdPct, '%', herdPct > 80 ? 'trend-up' : 'trend-neutral', herdPct > 80 ? '✓ Good (target >80%)' : 'Target: >80%')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Herd Composition</div>
+            <div class="chart-sub">Breakdown of your ${f.total_animals || '—'} animals</div>
+            ${f.total_animals && f.lactating_cows ? `
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+              ${herdBar('Lactating Cows', f.lactating_cows, f.total_animals, '#2d6a2e')}
+              ${herdBar('Dry Cows', Math.max(0, f.total_animals - f.lactating_cows), f.total_animals, '#81c784')}
+            </div>` : '<div style="color:var(--ink3);font-size:13px;padding:20px 0">Enter herd data in Farm Registration to see breakdown</div>'}
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Farm Details</div>
+            <div class="chart-sub">Key farm parameters</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+              ${infoRow('Production Type', f.production_type || '—')}
+              ${infoRow('Farm Size', f.farm_area_ha ? f.farm_area_ha + ' ha' : '—')}
+              ${infoRow('Years Operating', f.years_operation ? f.years_operation + ' years' : '—')}
+              ${infoRow('Ownership', f.ownership_status || '—')}
+              ${infoRow('Region', f.region || f.country || '—')}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    milk: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Milk Production</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Production performance and milk quality indicators</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('🥛','Daily Production', f.daily_yield_liters || '—', 'L', 'trend-neutral', 'Total liters per day')}
+          ${kpiCard('🐄','Yield per Cow', ypc, 'L/day', ypc > 15 ? 'trend-up' : ypc > 8 ? 'trend-neutral' : 'trend-down', ypc > 15 ? '↑ Good performance' : ypc > 8 ? '→ Average' : '↓ Below average')}
+          ${kpiCard('🔬','SCC', f.scc_thousands || '—', 'k cells/mL', f.scc_thousands < 200 ? 'trend-up' : 'trend-down', f.scc_thousands < 200 ? '✓ Premium quality' : f.scc_thousands < 400 ? '⚠ Acceptable' : '⛔ Poor quality')}
+          ${kpiCard('💰','Milk Price', f.milk_price_per_liter || '—', currency + '/L', 'trend-neutral', 'Selling price per liter')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Production Summary</div>
+            <div class="chart-sub">Key performance vs targets</div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:12px">
+              ${progressBar('Yield / cow vs target (20 L)', ypc > 0 ? Math.min(100,(ypc/20)*100) : 0, ypc + ' L / 20 L target', '#2d6a2e')}
+              ${progressBar('SCC quality vs threshold (200k)', f.scc_thousands > 0 ? Math.min(100,((400-f.scc_thousands)/400)*100) : 0, f.scc_thousands + 'k / 200k target', f.scc_thousands < 200 ? '#2d6a2e' : '#d4790a')}
+              ${progressBar('Herd in milk vs target (80%)', herdPct > 0 ? Math.min(100, herdPct) : 0, herdPct + '% / 80% target', herdPct > 80 ? '#2d6a2e' : '#d4790a')}
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Quality Assessment</div>
+            <div class="chart-sub">Milk quality grade based on SCC</div>
+            <div style="text-align:center;padding:20px 0">
+              <div style="font-family:'DM Serif Display',serif;font-size:48px;color:${f.scc_thousands < 200 ? 'var(--green)' : f.scc_thousands < 400 ? 'var(--amber)' : 'var(--red)'}">
+                ${f.scc_thousands < 200 ? 'A+' : f.scc_thousands < 300 ? 'A' : f.scc_thousands < 400 ? 'B' : 'C'}
+              </div>
+              <div style="font-size:13px;color:var(--ink3);margin-top:8px">
+                ${f.scc_thousands < 200 ? 'Premium quality — eligible for quality bonuses' : f.scc_thousands < 400 ? 'Standard quality — improvement recommended' : 'Below standard — mastitis risk detected'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    feeding: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Feeding Management</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Feed costs, efficiency and nutrition overview</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('💰','Feed Cost / L', f.feed_cost_per_liter || '—', currency, 'trend-neutral', 'Cost per liter of milk')}
+          ${kpiCard('📦','Daily Feed Cost', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters).toLocaleString() : '—', currency, 'trend-neutral', 'Estimated daily feed spend')}
+          ${kpiCard('📈','Monthly Feed Cost', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters * 30).toLocaleString() : '—', currency, 'trend-neutral', 'Estimated monthly spend')}
+          ${kpiCard('⚖️','Feed Efficiency', ypc > 0 && f.feed_cost_per_liter > 0 ? (ypc / f.feed_cost_per_liter * 100).toFixed(1) : '—', 'L/unit cost', 'trend-neutral', 'Liters per unit feed cost')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Cost Analysis</div>
+            <div class="chart-sub">Feed cost breakdown and benchmarks</div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:12px">
+              ${infoRow('Feed cost per liter', f.feed_cost_per_liter ? f.feed_cost_per_liter + ' ' + currency : 'Not entered')}
+              ${infoRow('Daily production', f.daily_yield_liters ? f.daily_yield_liters + ' L' : '—')}
+              ${infoRow('Daily feed cost estimate', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters).toLocaleString() + ' ' + currency : '—')}
+              ${infoRow('Annual feed cost estimate', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters * 365).toLocaleString() + ' ' + currency : '—')}
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Feeding Recommendations</div>
+            <div class="chart-sub">Based on your farm data</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              ${ypc < 15 ? recBox('🌾', 'Review ration energy density', 'Yield per cow suggests the TMR may be low in energy. Consider increasing bypass fat or starch content.', 'high') : recBox('✅', 'Yield is adequate', 'Continue current feeding program and monitor trends monthly.', 'low')}
+              ${f.feed_cost_per_liter > 200 ? recBox('💰', 'High feed cost detected', 'Feed cost per liter appears high. Consider bulk purchasing or increasing homegrown forage proportion.', 'medium') : ''}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    reproduction: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Reproduction Management</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Fertility performance and breeding efficiency</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('📋','Conception Rate', f.conception_rate_pct || '—', '%', f.conception_rate_pct >= 65 ? 'trend-up' : f.conception_rate_pct >= 45 ? 'trend-neutral' : 'trend-down', f.conception_rate_pct >= 65 ? '✓ On target (≥65%)' : f.conception_rate_pct >= 45 ? '→ Below target (65%)' : '↓ Critical — review protocol')}
+          ${kpiCard('🔄','Target Rate', '65', '%', 'trend-neutral', 'Industry benchmark')}
+          ${kpiCard('📉','Gap to Target', f.conception_rate_pct > 0 ? Math.max(0, 65 - f.conception_rate_pct) : '—', 'pts', f.conception_rate_pct >= 65 ? 'trend-up' : 'trend-down', f.conception_rate_pct >= 65 ? '✓ Target achieved' : 'Points below target')}
+          ${kpiCard('🐄','Breeding Cows', f.lactating_cows || '—', 'eligible', 'trend-neutral', 'Lactating cows eligible')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Fertility Score</div>
+            <div class="chart-sub">Conception rate vs regional benchmarks</div>
+            <div style="display:flex;flex-direction:column;gap:14px;margin-top:12px">
+              ${progressBar('Your conception rate', f.conception_rate_pct || 0, (f.conception_rate_pct || 0) + '%', f.conception_rate_pct >= 65 ? '#2d6a2e' : '#d4790a')}
+              ${progressBar('Regional average', 62, '62%', '#81c784')}
+              ${progressBar('Target', 65, '65%', '#1b6b5e')}
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Reproduction Recommendations</div>
+            <div class="chart-sub">Targeted interventions</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              ${f.conception_rate_pct < 50 ? recBox('🔴', 'Critical: Low conception rate', 'Shift AI timing to early morning (05:00-07:00), check bull fertility, increase water access points, and consider rumen-protected fat supplement at 200g/cow/day.', 'high') : f.conception_rate_pct < 65 ? recBox('🟡', 'Below target: Improve conception', 'Consider reviewing heat detection accuracy, AI timing protocol, and energy balance around breeding.', 'medium') : recBox('✅', 'Good fertility performance', 'Conception rate is at or above target. Maintain current protocol and monitor monthly.', 'low')}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    health: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Animal Health</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Udder health, disease prevention and welfare indicators</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('🔬','SCC Level', f.scc_thousands || '—', 'k cells/mL', f.scc_thousands < 200 ? 'trend-up' : 'trend-down', f.scc_thousands < 200 ? '✓ Excellent udder health' : '⚠ Review milking hygiene')}
+          ${kpiCard('🎯','Target SCC', '<200', 'k cells/mL', 'trend-neutral', 'Premium milk threshold')}
+          ${kpiCard('🏥','Health Risk', f.scc_thousands > 400 ? 'HIGH' : f.scc_thousands > 200 ? 'MEDIUM' : 'LOW', '', f.scc_thousands > 400 ? 'trend-down' : f.scc_thousands > 200 ? 'trend-neutral' : 'trend-up', 'Based on SCC level')}
+          ${kpiCard('💊','Mastitis Risk', f.scc_thousands > 400 ? 'Elevated' : f.scc_thousands > 200 ? 'Moderate' : 'Low', '', f.scc_thousands > 400 ? 'trend-down' : f.scc_thousands > 200 ? 'trend-neutral' : 'trend-up', 'SCC-based assessment')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Udder Health Status</div>
+            <div class="chart-sub">SCC analysis and milk quality grade</div>
+            <div style="text-align:center;padding:16px 0">
+              <div style="font-family:'DM Serif Display',serif;font-size:52px;color:${f.scc_thousands < 200 ? 'var(--green)' : f.scc_thousands < 400 ? 'var(--amber)' : 'var(--red)'}">
+                ${f.scc_thousands || '—'}k
+              </div>
+              <div style="font-size:12px;color:var(--ink3);margin-top:4px">cells/mL</div>
+              <div style="margin-top:16px">
+                ${progressBar('SCC vs premium threshold (200k)', f.scc_thousands > 0 ? Math.min(100, (f.scc_thousands/600)*100) : 0, '', f.scc_thousands < 200 ? '#2d6a2e' : '#c0392b')}
+              </div>
+              <div style="font-size:12px;margin-top:12px;padding:8px 12px;background:${f.scc_thousands < 200 ? 'var(--green5)' : 'var(--earth2)'};border-radius:6px;color:var(--ink2)">
+                ${f.scc_thousands < 200 ? '✓ Eligible for premium milk pricing' : f.scc_thousands < 400 ? '⚠ Not eligible for premium — investigate subclinical mastitis' : '⛔ High SCC — immediate veterinary review recommended'}
+              </div>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Health Action Plan</div>
+            <div class="chart-sub">Recommended interventions</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              ${f.scc_thousands > 400 ? recBox('🔴', 'Urgent: Mastitis risk', 'SCC above 400k indicates active mastitis. Identify and treat affected cows immediately. Review milking machine settings and post-milking teat dipping.', 'high') : f.scc_thousands > 200 ? recBox('🟡', 'Subclinical mastitis likely', 'SCC between 200-400k suggests subclinical mastitis in some cows. Consider individual cow SCC testing and targeted treatment.', 'medium') : recBox('✅', 'Excellent udder health', 'SCC below 200k — continue current milking hygiene protocol and teat dipping program.', 'low')}
+              ${recBox('💉', 'Vaccination reminder', 'Ensure all cows are up to date on FMD, BVD, and leptospirosis vaccinations. Record dates in farm journal.', 'low')}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    financials: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Financial Performance</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Revenue, costs and profitability analysis</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+          ${kpiCard('💵','Daily Revenue Est.', f.daily_yield_liters && f.milk_price_per_liter ? (f.daily_yield_liters * f.milk_price_per_liter).toLocaleString() : '—', currency, 'trend-neutral', 'Based on yield × price')}
+          ${kpiCard('📦','Daily Feed Cost', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters).toLocaleString() : '—', currency, 'trend-neutral', 'Feed cost estimate')}
+          ${kpiCard('📈','Monthly Revenue Est.', f.daily_yield_liters && f.milk_price_per_liter ? (f.daily_yield_liters * f.milk_price_per_liter * 30).toLocaleString() : '—', currency, 'trend-neutral', '30-day estimate')}
+          ${kpiCard('⚖️','Cost per Liter', f.feed_cost_per_liter || '—', currency, 'trend-neutral', 'Feed cost only')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <div class="chart-title">Financial Summary</div>
+            <div class="chart-sub">Estimated based on available data</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+              ${infoRow('Daily production', f.daily_yield_liters ? f.daily_yield_liters + ' L' : 'Not entered')}
+              ${infoRow('Milk price / L', f.milk_price_per_liter ? f.milk_price_per_liter + ' ' + currency : 'Not entered')}
+              ${infoRow('Daily revenue (est.)', f.daily_yield_liters && f.milk_price_per_liter ? (f.daily_yield_liters * f.milk_price_per_liter).toLocaleString() + ' ' + currency : '—')}
+              ${infoRow('Monthly revenue (est.)', f.daily_yield_liters && f.milk_price_per_liter ? (f.daily_yield_liters * f.milk_price_per_liter * 30).toLocaleString() + ' ' + currency : '—')}
+              ${infoRow('Feed cost / L', f.feed_cost_per_liter ? f.feed_cost_per_liter + ' ' + currency : 'Not entered')}
+              ${infoRow('Daily feed cost (est.)', f.feed_cost_per_liter && f.daily_yield_liters ? (f.feed_cost_per_liter * f.daily_yield_liters).toLocaleString() + ' ' + currency : '—')}
+            </div>
+            <div style="margin-top:16px;padding:12px;background:var(--green5);border:1px solid var(--green4);border-radius:8px;font-size:12px;color:var(--ink2)">
+              💡 Add your milk selling price in the farm profile to enable full financial analysis.
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Financial Recommendations</div>
+            <div class="chart-sub">Opportunities to improve profitability</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+              ${f.scc_thousands < 200 ? recBox('💰', 'Premium milk pricing opportunity', 'Your SCC qualifies you for premium milk pricing. Negotiate with your dairy processor for a quality bonus.', 'low') : recBox('📉', 'SCC reducing your milk value', 'Improving SCC below 200k could qualify you for premium pricing bonuses on every liter sold.', 'medium')}
+              ${recBox('📊', 'Track all costs for better analysis', 'Enter your milk selling price and complete the financial section to get full profitability analysis.', 'low')}
+            </div>
+          </div>
+        </div>
+      </div>`,
+
+    reports: `
+      <div style="padding:24px 32px">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--ink);margin-bottom:4px">Farm Reports</div>
+        <div style="font-size:13px;color:var(--ink3);margin-bottom:24px">Automated farm assessment and audit reports</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+          <div class="chart-card" style="cursor:pointer" onclick="window.print()">
+            <div style="font-size:24px;margin-bottom:12px">📋</div>
+            <div class="chart-title">Farm Performance Report</div>
+            <div style="font-size:12px;color:var(--ink3);margin:8px 0 16px">Full overview of all performance scores, KPIs, and recommendations</div>
+            <div style="padding:8px 16px;background:var(--green);border-radius:6px;font-size:13px;font-weight:600;color:#fff;text-align:center">Print / Save PDF</div>
+          </div>
+          <div class="chart-card" style="opacity:0.6">
+            <div style="font-size:24px;margin-bottom:12px">🌿</div>
+            <div class="chart-title">Sustainability Report</div>
+            <div style="font-size:12px;color:var(--ink3);margin:8px 0 16px">Carbon footprint, water usage, and LCA analysis report</div>
+            <div style="padding:8px 16px;background:var(--surface3);border-radius:6px;font-size:13px;font-weight:500;color:var(--ink3);text-align:center">Coming Soon</div>
+          </div>
+          <div class="chart-card" style="opacity:0.6">
+            <div style="font-size:24px;margin-bottom:12px">💰</div>
+            <div class="chart-title">Financial Analysis Report</div>
+            <div style="font-size:12px;color:var(--ink3);margin:8px 0 16px">Revenue projections, cost breakdown and ROI analysis</div>
+            <div style="padding:8px 16px;background:var(--surface3);border-radius:6px;font-size:13px;font-weight:500;color:var(--ink3);text-align:center">Coming Soon</div>
+          </div>
+        </div>
+        <div style="margin-top:20px" class="chart-card">
+          <div class="chart-title" style="margin-bottom:16px">📊 Quick Farm Summary — ${f.farm_name}</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;font-size:13px">
+            <div>
+              <div style="font-weight:600;color:var(--ink2);margin-bottom:8px">Production</div>
+              ${infoRow('Daily yield', f.daily_yield_liters ? f.daily_yield_liters + ' L' : '—')}
+              ${infoRow('Yield / cow', ypc + ' L/day')}
+              ${infoRow('Lactating cows', f.lactating_cows || '—')}
+            </div>
+            <div>
+              <div style="font-weight:600;color:var(--ink2);margin-bottom:8px">Quality & Health</div>
+              ${infoRow('SCC', f.scc_thousands ? f.scc_thousands + 'k' : '—')}
+              ${infoRow('Conception rate', f.conception_rate_pct ? f.conception_rate_pct + '%' : '—')}
+              ${infoRow('Herd utilization', herdPct + '%')}
+            </div>
+            <div>
+              <div style="font-weight:600;color:var(--ink2);margin-bottom:8px">Economics</div>
+              ${infoRow('Feed cost/L', f.feed_cost_per_liter || '—')}
+              ${infoRow('Farm size', f.farm_area_ha ? f.farm_area_ha + ' ha' : '—')}
+              ${infoRow('Location', f.region || f.country || '—')}
+            </div>
+          </div>
+        </div>
+      </div>`
+  };
+
+  document.getElementById('dashContent').innerHTML = tabContent[tab] || '';
+}
+
+function kpiCard(icon, label, value, unit, trendClass, trendText) {
+  return `<div class="kpi-card"><div class="kpi-label">${icon} ${label}</div><div class="kpi-num">${value}<span class="kpi-unit">${unit}</span></div><div class="kpi-trend ${trendClass}">${trendText}</div></div>`;
+}
+function infoRow(label, value) {
+  return `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--ink3)">${label}</span><span style="font-weight:600;color:var(--ink)">${value}</span></div>`;
+}
+function herdBar(label, value, total, color) {
+  const pct = total > 0 ? Math.round((value/total)*100) : 0;
+  return `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--ink2)">${label}</span><span style="font-weight:600;color:var(--ink)">${value} (${pct}%)</span></div><div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${color};border-radius:4px;transition:width .6s"></div></div></div>`;
+}
+function progressBar(label, pct, valueText, color) {
+  return `<div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="color:var(--ink2)">${label}</span><span style="font-weight:600;color:var(--ink)">${valueText}</span></div><div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden"><div style="width:${Math.min(100,pct)}%;height:100%;background:${color};border-radius:4px;transition:width .6s"></div></div></div>`;
+}
+function recBox(icon, title, body, priority) {
+  const colors = { high: {bg:'#ffebee',border:'rgba(192,57,43,0.2)',tc:'#c62828'}, medium: {bg:'#fff8e1',border:'rgba(212,121,10,0.2)',tc:'#e65100'}, low: {bg:'var(--green5)',border:'rgba(45,106,46,0.2)',tc:'var(--green)'} };
+  const c = colors[priority] || colors.low;
+  return `<div style="background:${c.bg};border:1px solid ${c.border};border-radius:8px;padding:12px"><div style="font-size:12px;font-weight:600;color:${c.tc};margin-bottom:4px">${icon} ${title}</div><div style="font-size:11px;color:var(--ink2);line-height:1.5">${body}</div></div>`;
+}
 document.querySelectorAll('.step-nav-item').forEach((item,i) => item.addEventListener('click', function(){ document.querySelectorAll('.step-nav-item').forEach((s,j)=>{ s.classList.remove('active'); s.querySelector('.step-num-sm').className='step-num-sm '+(j<i?'s-complete':j===i?'s-active':'s-pending') }); this.classList.add('active') }));
 
 // ── INIT ──
