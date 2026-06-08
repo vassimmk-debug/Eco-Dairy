@@ -946,16 +946,20 @@ async function saveFarmProfile() {
 
     let saveError;
     if (existing && existing.length > 0) {
-      // Update existing farm
       const { error } = await sb.from('farms').update(data).eq('id', existing[0].id);
       saveError = error;
     } else {
-      // Insert new farm
       const { error } = await sb.from('farms').insert([data]);
       saveError = error;
     }
 
-    if (saveError) throw new Error(saveError.message);
+    if (saveError) {
+      const e = new Error(saveError.message || 'Unknown error');
+      e.details = saveError.details;
+      e.hint = saveError.hint;
+      e.code = saveError.code;
+      throw e;
+    }
 
     // Success
     showMsg(msg, '✓ Farm profile saved successfully!', 'success');
@@ -964,8 +968,10 @@ async function saveFarmProfile() {
     await updateLiveStats();
 
   } catch (err) {
-    console.error('Save error:', err);
-    showMsg(msg, 'Error saving farm: ' + err.message, 'error');
+    console.error('Save error full:', err);
+    const detail = err.message + (err.details ? ' | ' + err.details : '') + (err.hint ? ' | ' + err.hint : '');
+    showMsg(msg, 'ERROR: ' + detail, 'error');
+    alert('Save failed:\n\n' + detail);
   } finally {
     // Always re-enable button
     if (btn) { btn.disabled = false; btn.textContent = 'Save Farm Profile →'; }
