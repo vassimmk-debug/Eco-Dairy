@@ -882,9 +882,7 @@ function noDataHTML() {
 async function saveFarmProfile() {
   const msg = document.getElementById('farmMsg');
   if (!currentUser) { showMsg(msg, 'Please log in first to save your data.', 'error'); openModal(); return; }
-
-  // Data that belongs in the FARMS table
-  const farmData = {
+  const data = {
     user_id: currentUser.id,
     farm_name: document.getElementById('f_name').value,
     owner_name: document.getElementById('f_owner').value,
@@ -895,89 +893,32 @@ async function saveFarmProfile() {
     production_type: document.getElementById('f_production').value,
     ownership_status: document.getElementById('f_ownership').value,
     description: document.getElementById('f_desc').value,
-    updated_at: new Date().toISOString()
-  };
-
-  if (!farmData.farm_name) { showMsg(msg, 'Farm name is required.', 'error'); return; }
-
-  const btn = document.querySelector('.form-footer .btn-green');
-  btn.disabled = true; btn.textContent = 'Saving...';
-
-  // Step 1: Save/update the farms table
-  const existing = await sb.from('farms').select('id').eq('user_id', currentUser.id).limit(1);
-  let error;
-  let farmId;
-
-  if (existing.data && existing.data.length > 0) {
-    farmId = existing.data[0].id;
-    ({ error } = await sb.from('farms').update(farmData).eq('id', farmId));
-  } else {
-    const insert = await sb.from('farms').insert([farmData]).select('id').single();
-    error = insert.error;
-    farmId = insert.data?.id;
-  }
-
-  if (error) {
-    btn.disabled = false; btn.textContent = t('save_profile');
-    showMsg(msg, 'Error saving farm: ' + error.message, 'error');
-    return;
-  }
-
-  // Step 2: Save herd data
-  const herdData = {
-    farm_id: farmId,
     total_animals: parseInt(document.getElementById('f_animals').value) || null,
     lactating_cows: parseInt(document.getElementById('f_lactating').value) || null,
-  };
-  const existingHerd = await sb.from('herd').select('id').eq('farm_id', farmId).limit(1);
-  if (existingHerd.data && existingHerd.data.length > 0) {
-    await sb.from('herd').update(herdData).eq('farm_id', farmId);
-  } else {
-    await sb.from('herd').insert([herdData]);
-  }
-
-  // Step 3: Save milk production data
-  const milkData = {
-    farm_id: farmId,
     daily_yield_liters: parseFloat(document.getElementById('f_yield').value) || null,
-    scc_thousands: parseFloat(document.getElementById('f_scc').value) || null,
-  };
-  const existingMilk = await sb.from('milk_production').select('id').eq('farm_id', farmId).limit(1);
-  if (existingMilk.data && existingMilk.data.length > 0) {
-    await sb.from('milk_production').update(milkData).eq('farm_id', farmId);
-  } else {
-    await sb.from('milk_production').insert([milkData]);
-  }
-
-  // Step 4: Save reproduction data
-  const reproData = {
-    farm_id: farmId,
     conception_rate_pct: parseFloat(document.getElementById('f_conception').value) || null,
-  };
-  const existingRepro = await sb.from('reproduction').select('id').eq('farm_id', farmId).limit(1);
-  if (existingRepro.data && existingRepro.data.length > 0) {
-    await sb.from('reproduction').update(reproData).eq('farm_id', farmId);
-  } else {
-    await sb.from('reproduction').insert([reproData]);
-  }
-
-  // Step 5: Save feeding data
-  const feedData = {
-    farm_id: farmId,
+    scc_thousands: parseFloat(document.getElementById('f_scc').value) || null,
     feed_cost_per_liter: parseFloat(document.getElementById('f_feedcost').value) || null,
+    updated_at: new Date().toISOString()
   };
-  const existingFeed = await sb.from('feeding').select('id').eq('farm_id', farmId).limit(1);
-  if (existingFeed.data && existingFeed.data.length > 0) {
-    await sb.from('feeding').update(feedData).eq('farm_id', farmId);
+  if (!data.farm_name) { showMsg(msg, 'Farm name is required.', 'error'); return; }
+  const btn = document.querySelector('.form-footer .btn-green');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const existing = await sb.from('farms').select('id').eq('user_id', currentUser.id).limit(1);
+  let error;
+  if (existing.data && existing.data.length > 0) {
+    ({ error } = await sb.from('farms').update(data).eq('id', existing.data[0].id));
   } else {
-    await sb.from('feeding').insert([feedData]);
+    ({ error } = await sb.from('farms').insert([data]));
   }
-
   btn.disabled = false; btn.textContent = t('save_profile');
-  showMsg(msg, '✓ Farm saved successfully!', 'success');
-  showToast('Farm data saved! 🌾', 'green');
-  await loadFarmData();
-  await updateLiveStats();
+  if (error) showMsg(msg, 'Error: ' + error.message, 'error');
+  else {
+    showMsg(msg, '✓ Farm saved successfully!', 'success');
+    showToast('Farm data saved! 🌾', 'green');
+    await loadFarmData();
+    await updateLiveStats();
+  }
 }
 
 // ── AUTH ──
@@ -990,8 +931,7 @@ async function handleLogin() {
   btn.disabled = true; btn.textContent = 'Logging in...';
   const { error } = await sb.auth.signInWithPassword({ email, password: pass });
   btn.disabled = false; btn.textContent = t('login');
- if (error) showMsg(msg, error.message, 'error');
-else closeModal();
+  if (error) showMsg(msg, error.message, 'error');
 }
 
 async function handleRegister() {
