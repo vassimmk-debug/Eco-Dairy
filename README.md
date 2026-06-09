@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/28670383/README.md)
 # AgriLait — Figma Import Files
 
 ## Files included
