@@ -881,19 +881,18 @@ function noDataHTML() {
 // ── SAVE FARM ──
 async function saveFarmProfile() {
   const msg = document.getElementById('farmMsg');
-  const btn = document.querySelector('.form-footer .btn-green');
-  if (!currentUser) { showMsg(msg, 'Please log in first.', 'error'); openModal(); return; }
+  if (!currentUser) { showMsg(msg, 'Please log in first to save your data.', 'error'); openModal(); return; }
   const data = {
     user_id: currentUser.id,
-    farm_name: (document.getElementById('f_name').value || '').trim(),
-    owner_name: (document.getElementById('f_owner').value || '').trim(),
+    farm_name: document.getElementById('f_name').value,
+    owner_name: document.getElementById('f_owner').value,
     country: document.getElementById('f_country').value,
-    region: (document.getElementById('f_region').value || '').trim(),
+    region: document.getElementById('f_region').value,
     farm_area_ha: parseFloat(document.getElementById('f_area').value) || null,
     years_operation: parseInt(document.getElementById('f_years').value) || null,
     production_type: document.getElementById('f_production').value,
     ownership_status: document.getElementById('f_ownership').value,
-    description: (document.getElementById('f_desc').value || '').trim(),
+    description: document.getElementById('f_desc').value,
     total_animals: parseInt(document.getElementById('f_animals').value) || null,
     lactating_cows: parseInt(document.getElementById('f_lactating').value) || null,
     daily_yield_liters: parseFloat(document.getElementById('f_yield').value) || null,
@@ -903,23 +902,26 @@ async function saveFarmProfile() {
     updated_at: new Date().toISOString()
   };
   if (!data.farm_name) { showMsg(msg, 'Farm name is required.', 'error'); return; }
-  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
-  try {
-    const { error } = await sb.from('farms').upsert(data, { onConflict: 'user_id' });
-    if (error) throw error;
-    showMsg(msg, '✓ Farm saved!', 'success');
+  const btn = document.querySelector('.form-footer .btn-green');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  const existing = await sb.from('farms').select('id').eq('user_id', currentUser.id).limit(1);
+  let error;
+  if (existing.data && existing.data.length > 0) {
+    ({ error } = await sb.from('farms').update(data).eq('id', existing.data[0].id));
+  } else {
+    ({ error } = await sb.from('farms').insert([data]));
+  }
+  btn.disabled = false; btn.textContent = t('save_profile');
+  if (error) showMsg(msg, 'Error: ' + error.message, 'error');
+  else {
+    showMsg(msg, '✓ Farm saved successfully!', 'success');
     showToast('Farm data saved! 🌾', 'green');
     await loadFarmData();
     await updateLiveStats();
-  } catch(err) {
-    showMsg(msg, 'Error: ' + (err.message || err), 'error');
-    alert('Save error: ' + (err.message || err));
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Save Farm Profile →'; }
   }
 }
 
-
+// ── AUTH ──
 async function handleLogin() {
   const email = document.getElementById('loginEmail').value;
   const pass = document.getElementById('loginPassword').value;
@@ -929,7 +931,8 @@ async function handleLogin() {
   btn.disabled = true; btn.textContent = 'Logging in...';
   const { error } = await sb.auth.signInWithPassword({ email, password: pass });
   btn.disabled = false; btn.textContent = t('login');
-  if (error) showMsg(msg, error.message, 'error');
+ if (error) showMsg(msg, error.message, 'error');
+else closeModal();
 }
 
 async function handleRegister() {
