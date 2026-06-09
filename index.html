@@ -931,8 +931,7 @@ async function handleLogin() {
   btn.disabled = true; btn.textContent = 'Logging in...';
   const { error } = await sb.auth.signInWithPassword({ email, password: pass });
   btn.disabled = false; btn.textContent = t('login');
- if (error) showMsg(msg, error.message, 'error');
-else closeModal();
+  if (error) showMsg(msg, error.message, 'error');
 }
 
 async function handleRegister() {
